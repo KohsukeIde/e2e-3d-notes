@@ -1,5 +1,5 @@
 name: E2E 3D experiment report
-description: 再現実験・比較実験・negative resultを設定とprovenance付きで保存します
+description: 背景，対立仮説，識別実験，結果，含意をprovenance付きで保存する
 title: "[Experiment] "
 labels:
   - experiment
@@ -25,80 +25,101 @@ body:
     validations:
       required: true
   - type: textarea
-    id: takeaway
+    id: background
     attributes:
-      label: One-sentence takeaway
-      description: 何が予想外で、field defaultをどう変えるかを書いてください
+      label: Background
+      description: 既存論文または実運用のどの観測が，この実験を必要にしたかを書く
     validations:
       required: true
   - type: textarea
-    id: io
+    id: research_question
     attributes:
-      label: Input / output / actions
-      description: 入力、model出力、KEEP/REFINE/REPAIR等の比較armを定義してください
+      label: Research question
+      description: この実験が答える問いを一つの疑問文で書く
+    validations:
+      required: true
+  - type: textarea
+    id: hypotheses
+    attributes:
+      label: Competing hypotheses
+      description: 複数の説明と，それぞれが予測する観測結果を書く
+    validations:
+      required: true
+  - type: textarea
+    id: intervention
+    attributes:
+      label: Controlled intervention
+      description: 入力，初期値，対応点，solver，metricのうち，何を固定し何だけを変えたかを書く
     validations:
       required: true
   - type: textarea
     id: model
     attributes:
       label: Model and checkpoint
-      description: model、parameter count、checkpoint ID/SHA、upstream commit、license
+      description: Model，parameter count，checkpoint ID / SHA，upstream commit，license
     validations:
       required: true
   - type: textarea
     id: data
     attributes:
       label: Dataset and analysis unit
-      description: split、base sequence IDs/count、within-unit repeats、missing/refusalの扱い
+      description: Split，base sequence IDs/count，within-unit repeats，missing / refusalの扱い
     validations:
       required: true
   - type: textarea
     id: geometry
     attributes:
       label: Geometry conventions
-      description: c2w/w2c、OpenCV/OpenGL、intrinsics、scale/gauge、alignment、data-grounded test
+      description: Camera convention，intrinsics，scale，gauge，alignment，実dataによる検証
     validations:
       required: true
   - type: textarea
-    id: solver
+    id: execution
     attributes:
-      label: Tracker / solver / runtime settings
-      description: query数、visibility、loss、damping、iteration cap、health gates、versions、hardware、seed
+      label: Tracker, solver, and runtime settings
+      description: Query数，visibility，loss，iteration cap，health gate，versions，hardware，seed
     validations:
       required: true
   - type: textarea
     id: metrics
     attributes:
-      label: Metrics and decision rule
-      description: metricの定義・方向、事前threshold、go/pivot/kill条件
+      label: Metrics
+      description: Metricの意味，良い方向，集計単位を書く
     validations:
       required: true
   - type: textarea
     id: results
     attributes:
       label: Results
-      description: sequence-levelの表、figure、failure caseを貼ってください
+      description: 各research questionへのanswerを先に書き，analysis unitとscopeを揃えたtableまたはfigureで支える
+    validations:
+      required: true
+  - type: textarea
+    id: non_triviality
+    attributes:
+      label: What is non-trivial?
+      description: 自然だった予想，両立しない観測，除外した説明，次のmethod choiceを書く
     validations:
       required: true
   - type: textarea
     id: caveats
     attributes:
-      label: Caveats, retractions, and artifact gaps
-      description: complete-case bias、invalid certificate、欠けたraw artifact等を削除せず残してください
+      label: Limitations and retractions
+      description: Complete-case bias，invalid claim，欠けたraw artifact，未検証の外挿を書く
     validations:
       required: true
   - type: textarea
     id: artifacts
     attributes:
       label: Reproduction artifacts
-      description: raw JSON/CSV、config、aggregation script、figure script、upstream sources
+      description: Raw JSON / CSV，config，aggregation script，figure script，一次資料
     validations:
       required: true
   - type: textarea
     id: next_test
     attributes:
       label: Next make-or-break test
-      description: どの結果が現在の結論を変えるかを一つに絞ってください
+      description: どの結果が現在の結論を変えるかを一つに絞る
     validations:
       required: true
   - type: checkboxes
@@ -106,9 +127,21 @@ body:
     attributes:
       label: Final checks
       options:
-        - label: repeated measuresを独立Nとして数えていない
+        - label: 背景，対立仮説，識別実験を結果より前に書いた
           required: true
-        - label: refusal / missing outputsを結果から消していない
+        - label: 内部のarm名，variant名，script名を本文から除いた
+          required: true
+        - label: 本文を「だ・である」調へ統一した
+          required: true
+        - label: repeated measuresを独立sampleとして数えていない
+          required: true
+        - label: sequence-levelとattempt-levelを混ぜず，異なる場合はpaired relationがないことを書いた
+          required: true
+        - label: figure captionへ入力，SHA-256，subset，analysis unit，集約，metric方向を書いた
+          required: true
+        - label: complete-case上限，selector性能，deployment utilityを区別した
+          required: true
+        - label: refusalとmissing outputを結果から消していない
           required: true
         - label: paper factとlocal observationを区別した
           required: true

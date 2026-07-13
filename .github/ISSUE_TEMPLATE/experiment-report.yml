@@ -1,0 +1,116 @@
+name: E2E 3D experiment report
+description: 再現実験・比較実験・negative resultを設定とprovenance付きで保存します
+title: "[Experiment] "
+labels:
+  - experiment
+body:
+  - type: dropdown
+    id: evidence_status
+    attributes:
+      label: Evidence status
+      options:
+        - hypothesis
+        - paper
+        - local-reproduction
+        - local-experiment
+        - inference
+        - retracted
+    validations:
+      required: true
+  - type: input
+    id: snapshot
+    attributes:
+      label: Snapshot date
+      placeholder: YYYY-MM-DD
+    validations:
+      required: true
+  - type: textarea
+    id: takeaway
+    attributes:
+      label: One-sentence takeaway
+      description: 何が予想外で、field defaultをどう変えるかを書いてください
+    validations:
+      required: true
+  - type: textarea
+    id: io
+    attributes:
+      label: Input / output / actions
+      description: 入力、model出力、KEEP/REFINE/REPAIR等の比較armを定義してください
+    validations:
+      required: true
+  - type: textarea
+    id: model
+    attributes:
+      label: Model and checkpoint
+      description: model、parameter count、checkpoint ID/SHA、upstream commit、license
+    validations:
+      required: true
+  - type: textarea
+    id: data
+    attributes:
+      label: Dataset and analysis unit
+      description: split、base sequence IDs/count、within-unit repeats、missing/refusalの扱い
+    validations:
+      required: true
+  - type: textarea
+    id: geometry
+    attributes:
+      label: Geometry conventions
+      description: c2w/w2c、OpenCV/OpenGL、intrinsics、scale/gauge、alignment、data-grounded test
+    validations:
+      required: true
+  - type: textarea
+    id: solver
+    attributes:
+      label: Tracker / solver / runtime settings
+      description: query数、visibility、loss、damping、iteration cap、health gates、versions、hardware、seed
+    validations:
+      required: true
+  - type: textarea
+    id: metrics
+    attributes:
+      label: Metrics and decision rule
+      description: metricの定義・方向、事前threshold、go/pivot/kill条件
+    validations:
+      required: true
+  - type: textarea
+    id: results
+    attributes:
+      label: Results
+      description: sequence-levelの表、figure、failure caseを貼ってください
+    validations:
+      required: true
+  - type: textarea
+    id: caveats
+    attributes:
+      label: Caveats, retractions, and artifact gaps
+      description: complete-case bias、invalid certificate、欠けたraw artifact等を削除せず残してください
+    validations:
+      required: true
+  - type: textarea
+    id: artifacts
+    attributes:
+      label: Reproduction artifacts
+      description: raw JSON/CSV、config、aggregation script、figure script、upstream sources
+    validations:
+      required: true
+  - type: textarea
+    id: next_test
+    attributes:
+      label: Next make-or-break test
+      description: どの結果が現在の結論を変えるかを一つに絞ってください
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Final checks
+      options:
+        - label: repeated measuresを独立Nとして数えていない
+          required: true
+        - label: refusal / missing outputsを結果から消していない
+          required: true
+        - label: paper factとlocal observationを区別した
+          required: true
+        - label: upstream assetのlicenseを確認した
+          required: true

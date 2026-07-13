@@ -1,0 +1,53 @@
+{
+  "snapshot_date": "2026-07-10",
+  "primary_unit": "base_sequence",
+  "sequence_population": {
+    "all": 29,
+    "easy": 15,
+    "hard": 14,
+    "easy_by_dataset": {"CO3D": 12, "Replica": 3},
+    "hard_by_dataset": {"ETH3D": 13, "TartanAir": 1}
+  },
+  "easy_oracle_gap": {
+    "a1_external_tracker": {"n": 14, "positive": 13, "median_auc30": 0.0244},
+    "a2_vggt_track_head": {"n": 15, "positive": 15, "median_auc30": 0.0325}
+  },
+  "hard_refusal_attempt_level": {
+    "a1_external_tracker": 0.575,
+    "a2_vggt_track_head": 0.875
+  },
+  "hard_ff_init": {"sequence_level_median_auc30": 0.933},
+  "oracle_action_ceiling": {
+    "all": {
+      "n": 24,
+      "mean_gain_auc30": 0.057,
+      "median_gain_auc30": 0.051,
+      "positive": 24,
+      "best_action_counts": {"KEEP": 0, "REFINE": 3, "REPAIR": 21}
+    },
+    "easy": {
+      "n": 15,
+      "mean_gain_auc30": 0.057,
+      "median_gain_auc30": 0.051,
+      "positive": 15,
+      "best_action_counts": {"KEEP": 0, "REFINE": 1, "REPAIR": 14}
+    },
+    "hard": {
+      "n": 9,
+      "mean_gain_auc30": 0.058,
+      "median_gain_auc30": 0.049,
+      "positive": 9,
+      "best_action_counts": {"KEEP": 0, "REFINE": 2, "REPAIR": 7}
+    }
+  },
+  "caveats": [
+    "Oracle REPAIR uses perfect correspondences and is a recoverability ceiling, not achievable tracker performance.",
+    "Refusal rates are attempt-level operational rates over repeated kernel/jitter/frame settings, not independent-sequence probabilities.",
+    "The local reduced artifact does not include outputs/d2/surface/*.json, so the sequence-level re-aggregation cannot be rerun from this repository alone."
+  ],
+  "provenance": {
+    "authoritative_summary": "T36_convergent_geometry/SEQ_REANALYSIS_RESULT.md",
+    "correction_record": "T36_convergent_geometry/REVIEW_RESPONSE.md",
+    "generated_by_original": "T36_convergent_geometry/code/seq_reanalysis.py"
+  }
+}

@@ -277,6 +277,102 @@ def plot_correspondence_diagnostics(summary: dict) -> None:
     plt.close(fig)
 
 
+def plot_constraint_output_hypothesis() -> None:
+    fig, ax = plt.subplots(figsize=(11.8, 6.4))
+    ax.set_xlim(0, 1)
+    ax.set_ylim(0, 1)
+    ax.axis("off")
+
+    ax.text(
+        0.5,
+        0.96,
+        "What should a feed-forward 3D model predict?",
+        ha="center",
+        va="top",
+        fontsize=16,
+        weight="bold",
+    )
+
+    ax.text(0.04, 0.84, "CURRENT CONTRACT", fontsize=11.5, weight="bold", color="#315a86")
+    _box(ax, 0.04, 0.61, 0.14, 0.15, "Multi-view\nRGB", "#f1f1f1")
+    _box(ax, 0.25, 0.61, 0.18, 0.15, "Feed-forward\n3D model", "#dce9f8")
+    _box(ax, 0.50, 0.56, 0.20, 0.25, "Coordinate-bearing outputs\n\ncameras\ndepth / pointmaps\ntracks", "#f9e7b3", fontsize=9.6)
+    _box(ax, 0.78, 0.61, 0.17, 0.15, "Optional global\noptimization", "#eee3f6")
+    _arrow(ax, (0.18, 0.685), (0.25, 0.685))
+    _arrow(ax, (0.43, 0.685), (0.50, 0.685))
+    _arrow(ax, (0.70, 0.685), (0.78, 0.685))
+
+    ax.plot([0.04, 0.96], [0.49, 0.49], color="#cfcfcf", linewidth=1)
+
+    ax.text(0.04, 0.42, "HYPOTHESIZED CONTRACT", fontsize=11.5, weight="bold", color="#27786f")
+    _box(ax, 0.04, 0.18, 0.14, 0.15, "Multi-view\nRGB", "#f1f1f1")
+    _box(ax, 0.25, 0.18, 0.18, 0.15, "Same-capacity\n3D model", "#d9f0ed")
+    _box(ax, 0.50, 0.13, 0.20, 0.25, "Only local geometric\nconstraints\n\nno camera, depth,\npointmap, or track output", "#cce8e4", fontsize=9.5)
+    _box(ax, 0.78, 0.18, 0.17, 0.15, "One shared\nnullspace readout", "#d8efe2")
+    _arrow(ax, (0.18, 0.255), (0.25, 0.255))
+    _arrow(ax, (0.43, 0.255), (0.50, 0.255))
+    _arrow(ax, (0.70, 0.255), (0.78, 0.255))
+
+    ax.text(
+        0.5,
+        0.045,
+        "Open question: does the output contract itself improve ordinary camera and 3D reconstruction?",
+        ha="center",
+        fontsize=10.5,
+        color="#333333",
+    )
+
+    fig.tight_layout()
+    fig.savefig(FIGURES / "constraint_output_hypothesis.png", bbox_inches="tight")
+    plt.close(fig)
+
+
+def plot_constraint_matched_test() -> None:
+    fig, ax = plt.subplots(figsize=(12.0, 6.4))
+    ax.set_xlim(0, 1)
+    ax.set_ylim(0, 1)
+    ax.axis("off")
+
+    ax.text(
+        0.5,
+        0.96,
+        "The first experiment must separate representation from extra privileges",
+        ha="center",
+        va="top",
+        fontsize=15,
+        weight="bold",
+    )
+    ax.text(
+        0.5,
+        0.885,
+        "Hold fixed: backbone, image supports, supervision, solver rights, refinement, compute, and seeds",
+        ha="center",
+        fontsize=9.7,
+        color="#555555",
+    )
+
+    labels = [
+        ("Predict constraints\ndirectly", "#cce8e4"),
+        ("Predict coordinates\nthen convert to the\nsame constraints", "#dce9f8"),
+        ("Predict coordinates\nthen run same-support\nSfM", "#f9e7b3"),
+        ("Predict constraints\nwith a matched learned\nreadout", "#eee3f6"),
+    ]
+    xs = [0.03, 0.275, 0.52, 0.765]
+    for x, (label, color) in zip(xs, labels):
+        _box(ax, x, 0.59, 0.205, 0.19, label, color, fontsize=9.6)
+        _arrow(ax, (x + 0.1025, 0.59), (x + 0.1025, 0.47))
+        _box(ax, x, 0.31, 0.205, 0.14, "Camera pose +\nobserved 3D quality\n(before / after refinement)", "#f3f3f3", fontsize=8.9)
+
+    ax.plot([0.04, 0.96], [0.24, 0.24], color="#cfcfcf", linewidth=1)
+    _box(ax, 0.055, 0.055, 0.26, 0.12, "ADVANCE\nDirect constraints win, and\nthe fixed readout is causal", "#d8efe2", fontsize=8.8)
+    _box(ax, 0.37, 0.055, 0.26, 0.12, "PIVOT\nOnly conditioning or\npre-refinement consistency changes", "#fff1c9", fontsize=8.8)
+    _box(ax, 0.685, 0.055, 0.26, 0.12, "KILL\nA matched coordinate arm\nmatches or wins", "#f6dddd", fontsize=8.8)
+
+    fig.tight_layout()
+    fig.savefig(FIGURES / "constraint_matched_test.png", bbox_inches="tight")
+    plt.close(fig)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--check", action="store_true", help="validate data and generated files")
@@ -292,6 +388,8 @@ def main() -> None:
     plot_dvlt(rows)
     plot_action_ceiling(summary)
     plot_correspondence_diagnostics(summary)
+    plot_constraint_output_hypothesis()
+    plot_constraint_matched_test()
 
     if args.check:
         for name in (
@@ -299,6 +397,8 @@ def main() -> None:
             "dvlt_k_sweep.png",
             "oracle_action_ceiling.png",
             "correspondence_diagnostics.png",
+            "constraint_output_hypothesis.png",
+            "constraint_matched_test.png",
         ):
             path = FIGURES / name
             assert path.exists() and path.stat().st_size > 10_000, path

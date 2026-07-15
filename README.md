@@ -1,41 +1,41 @@
 # E2E 3D Notes
 
-End-to-end / feed-forward multi-view 3D reconstructionについて，論文が作る期待，検証した仮説，再現実験，negative result，撤回事項を蓄積するrepositoryである．結論だけでなく，「なぜその実験を行ったか」「何を固定し，何を変えたか」「どの仮説が棄却されたか」を残す．
+End-to-end / feed-forward multi-view 3D reconstructionについて，論文から生じた疑問，手元の検証結果，うまくいかなかった試み，後から訂正した主張を蓄積するリポジトリである．結論だけでなく，「なぜ実験したか」「何を比較したか」「結果から何が言えて，何はまだ言えないか」を残す．
 
-## Current report
+## 現在のレポート
 
-- [Issue #1: VGGTのbundle adjustment改善を分解する](https://github.com/KohsukeIde/e2e-3d-notes/issues/1)
+- [Issue #1: VGGTの精度をさらに上げるには，何を改善すべきか](https://github.com/KohsukeIde/e2e-3d-notes/issues/1)
 - [詳細レポート](reports/2026-07-10-vggt-dvlt-correspondence.md)
 - [実験レポートの保存契約](docs/reporting_contract.md)
 
 ![Experiment design](figures/experiment_design.png)
 
-VGGT論文は，一回のnetwork inferenceへbundle adjustmentを加えるとカメラ姿勢精度が上がると報告している．今回の実験は，入力画像，VGGTの初期値，solverを固定し，measurementを作る経路を交換した．必要な出力が揃う24系列では，三処理の事後最良値がすべて正であり，21系列で正解measurementを使う処理が最良となった．これは実用性能ではなくcomplete-caseの診断上限である．一方，一つのDéjà View checkpointを学習範囲外まで反復すると，64回で奥行き誤差が16回の約17.2倍となった．いずれも対象modelと保存artifactの範囲に限定した観測である．
+VGGTの初期出力とbundle adjustmentを固定し，画像間の対応点だけを変えた．三種類の結果が揃った24系列では，正解対応点を使う処理が21系列で最良だった．これは実用手法ではなく，対応点を理想化した場合の上限である．また，一つのDéjà View公開モデルを学習範囲外まで反復すると，64回で奥行き誤差が16回時の約17.2倍になった．
 
-## Evidence status
+## 根拠の区分
 
-各claimには次のstatusを付ける．
+検索と監査のため，各記録には次のラベルを付ける．本文中へ繰り返し挿入せず，冒頭または末尾の根拠一覧に置く．
 
-| Status | 意味 |
+| ラベル | 意味 |
 |---|---|
-| `paper` | 原論文または公式codeに明記された事実 |
-| `local-reproduction` | 公開checkpointを再実行して得た結果 |
-| `local-experiment` | 独自のcontrolled comparisonから得た結果 |
+| `paper` | 原論文または公式コードに明記された事実 |
+| `local-reproduction` | 公開モデルを再実行して得た結果 |
+| `local-experiment` | 条件を管理した手元の比較から得た結果 |
 | `inference` | 観測結果から導いた解釈．追加検証が必要 |
 | `retracted` | 後の監査で無効になった主張．理由とともに履歴を残す |
 
-## Repository structure
+## リポジトリの構成
 
 ```text
-data/       図の入力値，縮約data，provenance
+data/       図の入力値，集計データ，出所
 docs/       実験記録の契約
-figures/    dataから再生成した図
-issues/     GitHub Issue本文のsnapshot
+figures/    保存データから再生成した図
+issues/     GitHub Issue本文の保存版
 reports/    長文の実験レポート
-scripts/    図の再生成と数値整合性のcheck
+scripts/    図の再生成と数値整合性の検査
 ```
 
-## Reproduction check
+## 数値と図の整合性検査
 
 ```bash
 python3 -m venv .venv
@@ -44,14 +44,14 @@ pip install -r requirements.txt
 make check
 ```
 
-`make check`は，raw JSON，縮約CSV，headline値，SHA-256，生成figureの整合性を検査する．
+`make check`は，保存データ，本文で使う集計値，生成した図の整合性を検査する．
 
-## Themes to accumulate
+## 今後蓄積するテーマ
 
-- feed-forward 3D modelとclassical geometryの役割分担
-- correspondence quality，camera initialization，solver failureの因果分解
+- feed-forward 3Dと幾何最適化の役割分担
+- 対応点の質，初期カメラ姿勢，最適化失敗の切り分け
 - VGGT，π³，MapAnything，Déjà View，VGGT-Ωの再現と比較
-- camera convention，scale，gauge，alignment，refusalを含む評価設計
-- positive resultだけでなく，negative result，撤回，artifact gapの保存
+- camera convention，scale，gauge，alignment，失敗時の扱いを含む評価設計
+- 良い結果だけでなく，うまくいかなかった試行，撤回事項，欠けた再現情報の保存
 
-Checkpoint，dataset，上流codeは再配布しない．各assetのlicenseは上流に従う．
+学習済みモデル，データセット，上流コードは再配布しない．各データのライセンスは配布元に従う．

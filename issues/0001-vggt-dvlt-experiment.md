@@ -1,164 +1,154 @@
-# [Experiment] VGGTのbundle adjustment改善を分解する：対応点診断と反復計算のstress test
+# [Experiment] VGGTの精度をさらに上げるには，何を改善すべきか
 
-> - Snapshot: 2026-07-10 / 監査後の訂正版
-> - Evidence: `local-reproduction` + `local-experiment`
-> - Reproducibility: Déjà ViewはB，VGGT対応点診断はC寄りのB
-> - Status: 観測結果は有効．正解情報を使わないmeasurement修復は未実装
+> 2026-07-10の実験結果を，2026-07-15に再整理した記録である．
 
-## 1．背景と研究の問い
+## 先に結論
 
-VGGTは，同じ場面を撮影した複数画像を一度networkへ通し，各画像のカメラ姿勢，奥行き，3D点を推定するモデルである．**Evidence: paper.** [VGGT論文](https://arxiv.org/abs/2503.11651)は，この一回の推論へbundle adjustmentを加えると，RealEstate10Kのカメラ姿勢スコアが85.3から93.5へ，CO3Dv2では88.2から91.8へ上がると報告している．
+今回の実験で最も明確だったのは，VGGTが出したカメラ姿勢やbundle adjustmentを変えなくても，画像間の対応点を正解情報に置き換えるだけで結果が良くなる余地が残っていたことである．比較可能な24画像系列のうち21系列で，正解対応点を使ったbundle adjustmentが最良であった．
 
-Bundle adjustmentは，複数画像で同じ3D点を写した画素の組をmeasurementとして受け取り，それらの再投影誤差が小さくなるようにカメラ姿勢と3D点を調整する．処理には，少なくとも次の三要素が必要である．
+一方，対応点を入力する学習器を作るだけでは姿勢は改善しなかった．対応点の違いに反応することと，正しい姿勢補正を求めることは別であった．また，Déjà Viewは学習時より少し多い反復では安定して見えたが，64回まで増やすと大きく崩れた．
 
-1. VGGTが出力した初期カメラ姿勢と3D点
-2. どの画素同士が同じ3D点かを表すmeasurement
-3. measurementを固定してカメラ姿勢と3D点を調整するsolver
+したがって，次に調べるべき対象は「さらに大きな姿勢推定モデル」だけではない．どの対応点をbundle adjustmentへ渡すかに加え，bundle adjustmentの結果を採用するか，反復をどこで止めるかを実際に判断できるか検証する必要がある．
 
-したがって，論文の改善量だけから「何を直せばさらに改善するか」は決まらない．本実験では，次の説明を区別する．
+## 何を確かめたかったか
 
-- **初期姿勢が制限要因である．** VGGTの初期カメラ姿勢がsolverの収束域から遠い．
-- **現在のsolverが固定measurement上の誤差を残す．** Learned measurementを変えなくても，現在のbundle adjustmentを行えば改善する．
-- **measurement構築が制限要因である．** 同じ初期値と同じsolverでも，measurementを作る経路を変えると到達結果が変わる．
-- **場面ごとに最良処理が異なる．** 元の推定を返す，既存measurementで最適化する，measurementを交換して最適化する，という選択問題が生じる．
+VGGTは，同じ場面を撮影した複数画像から，カメラ姿勢，奥行き，3D点を一度のニューラルネットワーク推論で求める．この種の方法はfeed-forward 3Dと呼ばれる．
 
-別の方向として，外部solverを使わずに反復をmodel内へ組み込んだDéjà Viewを調べる．問いは，一つの公開checkpointに対し，学習範囲の少し外側の挙動から，さらに長い反復の安全性を判断できるか，である．
+[VGGT論文](https://arxiv.org/abs/2503.11651)では，推論結果にbundle adjustmentを加えると，カメラ姿勢がさらに正確になると報告されている．Bundle adjustmentとは，複数画像に写った同じ3D点を手掛かりに，カメラ姿勢と3D点を調整する処理である．この処理には，「画像Aのこの画素と画像Bのこの画素は，同じ3D点を見ている」という対応関係が必要である．以下では，これを対応点と呼ぶ．
 
-![Experiment design](https://github.com/KohsukeIde/e2e-3d-notes/blob/main/figures/experiment_design.png?raw=1)
+論文の結果だけでは，VGGTにbundle adjustmentを加えたときの改善がどこから来たかは分からない．次の二つが候補になる．
 
-*図1．上段では入力画像，VGGT推定，solverを固定し，measurementの作り方を交換する．下段では同じDéjà View checkpointに適用する反復回数だけを変える．上段はmeasurement経路全体の寄与を調べる実験であり，対応の正しさだけを単独で変える実験ではない．数値入力を持たない概念図で，[図生成script](../blob/main/scripts/make_figures.py)から`make figures`で生成する．*
+1. VGGTが最初に出すカメラ姿勢がまだ不正確である．
+2. Bundle adjustmentへ渡す対応点が不正確，または不足している．
 
-## 2．実験は何を変え，何を固定したか
+今回のVGGT実験で直接変えたのは対応点だけであり，初期姿勢の寄与は検証していない．これとは独立した問いとして，反復型モデルであるDéjà Viewを学習時より長く反復したときの安定性も調べた．
 
-### 2.1 VGGTのmeasurement診断
+![実験の全体像](https://github.com/KohsukeIde/e2e-3d-notes/blob/main/figures/experiment_design.png?raw=1)
 
-VGGT-1Bが出力したカメラ姿勢と奥行きを共通の初期値とし，同じbundle-adjustment実装へ次の三種類のmeasurementを与えた．
+*図1．上段では，画像，VGGTの初期出力，bundle adjustmentを固定し，対応点の作り方だけを変えた．下段では，同じDéjà Viewへ同じ画像を入力し，反復回数だけを変えた．*
 
-- VGGT公式のbundle-adjustment経路が用いる強い外部トラッカー
-- VGGT自身が出力するpoint track
-- 正解カメラと正解奥行きから投影したmeasurement
+## 実験1：対応点だけを置き換える
 
-最後の経路は実用手法ではない．正解情報を使える場合の診断上限である．Query位置，点数，track長，空間被覆は三経路で一致させていないため，この比較はmeasurement構築経路全体の交換である．誤対応率だけの効果とは解釈しない．正解measurementと正解初期値を組み合わせ，現在のsolverが正解付近で動くことも確認した．
+VGGTが出したカメラ姿勢と奥行きを共通の初期値とし，同じbundle adjustmentへ次の三種類の対応点を渡した．
 
-評価対象は29のbase sequenceである．CO3D 12系列とReplica 3系列を標準条件，ETH3D 13系列とTartanAir 1系列をwide-baseline中心のstress条件として集計した．Robust lossの有無，初期値の微小摂動，10枚と30枚の入力は同一系列内の反復測定であり，独立したsampleには数えていない．
+1. 画像特徴の追跡を専門に行う外部モデルの対応点
+2. VGGT自身が出力するpoint track（同じ点を複数画像で追跡した座標列）
+3. 正解カメラと正解奥行きから計算した対応点
 
-必要な観測数を満たさない，または最適化後の残差検査を通らない実行を「拒否」と数えた．拒否は数値発散だけでなく，measurement不足や品質検査による中止を含む．
+以下では三つ目を正解対応点と呼ぶ．実際の推論では使えないが，「対応点が理想的なら，現在のVGGT出力をどこまで改善できるか」を測る上限になる．ただし，正解対応点は誤対応がないだけでなく，点の数や画像内の分布も他の二種類と異なる．したがって，この実験が測るのは対応点の正しさだけではなく，対応点生成全体の差である．
 
-### 2.2 Déjà Viewの反復stress test
+評価には29画像系列を用いた．内訳は，CO3D 12系列，Replica 3系列，ETH3D 13系列，TartanAir 1系列である．前二つを標準的な画像系列，後二つを視点差が大きく対応点を求めにくい画像系列として集計した．
 
-[Déjà View](https://arxiv.org/abs/2605.30215)は，同じTransformer blockを繰り返し適用するモデルである．公開checkpointは8回から16回の反復で学習されている．ETH3Dの同じ13系列に対し，8，12，16，20，24，32，48，64回の反復を行った．
+カメラ姿勢はPose AUC@30で評価した．値は0から1の範囲を取り，高いほど姿勢が正確である．
 
-17回以上は学習範囲外であり，同じblockをより細かいtime partitionで適用する．「学習時の17段目以降を実行する」という意味ではない．状態を記録するhookは出力を変更しない読み取り専用とし，16回反復でhookの有無による出力差が0であることを確認した．
+## 実験2：Déjà Viewの反復回数だけを増やす
 
-## 3．主要な設定
+[Déjà View](https://arxiv.org/abs/2605.30215)は，同じTransformer blockを繰り返し適用して3D推定を更新する．公開モデルは8回から16回の反復で学習されている．そこで，同じETH3D 13系列に対し，反復回数を8，12，16，20，24，32，48，64回へ変えた．17回以上は学習範囲外であり，学習時より長く反復したときに安定性が保たれるかを調べる実験である．
 
-| 項目 | VGGT measurement診断 | Déjà View反復実験 |
-|---|---|---|
-| Checkpoint | `facebook/VGGT-1B` | `nvidia/dvlt`，117M parameters |
-| 入力 | 最大辺1024 px，model入力518 px | 公式ETH3D評価入力 |
-| Measurement | 最大4096点，8 query frames，visibility 0.2 | Model内部のdense prediction |
-| 最適化 | intrinsics固定，soft-L1，最大80 iterations | 同一blockを8回から64回適用 |
-| 幾何規約 | OpenCV，world-to-camera，PINHOLE | 公式実装 |
-| 実行環境 | ABCI single GPU | Python 3.12，PyTorch 2.5.1，CUDA 12.4，ABCI single GPU |
+## 結果とQ&A
 
-VGGT側では，12 pxを超える初期再投影誤差を除外し，track length 2以上，1画像あたり16点以上を要求した．姿勢評価にはPose AUC@30を用いた．値域は0から1で，高いほどよい．Déjà Viewの奥行き評価には相対絶対誤差を用いた．こちらは低いほどよい．
+### Q1．対応点の作り方を変えるだけで，VGGTの姿勢推定はさらに良くなるか
 
-## 4．結果
+**A．良くなる余地があった．比較可能な24系列のうち21系列で，正解対応点を使った処理が最良であった．**
 
-### 問1．stress条件の拒否は，初期姿勢の低さだけで説明できるか
+三種類の処理結果がすべて揃った24系列について，元のVGGT出力，推定対応点を使ったbundle adjustment，正解対応点を使ったbundle adjustmentを比較した．24系列すべてで，元のVGGT出力より良い選択肢が存在した．系列ごとに最良の処理を選んだときの改善量は，Pose AUC@30の中央値で0.051であった．
 
-**答え．Evidence: local-experiment.** stress条件におけるVGGT単体の姿勢スコア中央値は，base sequence単位で0.933であった．同じstress条件で，外部トラッカーを使う経路は57.5%，VGGT自身のtrackを使う経路は87.5%の試行を拒否した．
+![対応点を理想化したときの改善上限](https://github.com/KohsukeIde/e2e-3d-notes/blob/main/figures/oracle_action_ceiling.png?raw=1)
 
-前者は系列単位，後者は試行単位であり，保存dataには両者を系列ごとに結ぶ表がない．したがって，同一系列での共起は証明できない．言えるのは，stress集合全体の失敗を「初期姿勢が一様に悪い」ことだけでは説明しにくく，初期姿勢とmeasurement経路の健全性を別々に測る必要がある，という範囲である．拒否には観測不足や品質検査も含まれるため，誤対応だけが原因とも断定しない．
+*図2．三つの結果が揃った24系列で，結果を見た後に最良の処理を選んだ場合の上限である．左は元のVGGT出力からの改善量，右は最良だった処理の内訳を示す．*
 
-![Correspondence diagnostics](https://github.com/KohsukeIde/e2e-3d-notes/blob/main/figures/correspondence_diagnostics.png?raw=1)
+これは実用手法の性能ではない．実際には使えない正解対応点と，結果を見た後の最良選択を使っているからである．ここから言えるのは，現在のVGGT出力とbundle adjustmentを固定したままでも，対応点の作り方に改善余地が残っているということまでである．
 
-*図2．左は標準条件で正解measurementからlearned measurementを引いた姿勢スコアの系列中央値であり，高いほど未回収差が大きい．外部トラッカー14系列，VGGT自身のtrack 15系列について，各系列内の差を先に求め，系列間の中央値を取った．右はstress条件の試行単位拒否率であり，高いほど悪い．二つのpanelは解析単位が異なり，paired relationを表さない．入力は[VGGT縮約集計](../blob/main/data/t36_sequence_summary.json)，SHA-256は`eb86b3845c19115e46331079fa70e4eba193fcba6db77a47c03a3a0aa3b9c0f4`である．右panelの分子と分母は縮約artifactに残っていない．`make figures`で生成する．*
+### Q2．標準的な画像でも，推定した対応点と正解対応点に差はあるか
 
-### 問2．標準条件では，measurement構築経路による差が残るか
+**A．差はあったが，小さかった．**
 
-**答え．Evidence: local-experiment.** 正解measurementと外部トラッカーの姿勢スコア差は14系列中13系列で正であり，中央値は0.0244であった．VGGT自身のtrackとの差は15系列すべてで正であり，中央値は0.0325であった．
+正解対応点を使った結果は，外部モデルの対応点を使った結果より，評価可能な14系列中13系列で良かった．Pose AUC@30の差の中央値は0.0244であった．VGGT自身のpoint trackと比べた場合は15系列すべてで良く，差の中央値は0.0325であった．
 
-利用可能な系列で観測された中央値は，外部トラッカーの方がVGGT自身のtrackより小さかった．ただし標本は14系列と15系列で一致せず，同一系列だけを使ったtracker間のpaired順位ではない．差は約0.02から0.03であり，標準条件だけから大きな実用上限を主張する結果でもない．また，正解measurementは点数と被覆も異なり得るため，差をmatch correctnessだけへ帰属させない．
+この結果は，標準的な画像でも差が完全には消えないことを示す．ただし，0.02から0.03程度の差であり，大幅な改善を示す結果ではない．また，二つの比較では評価できた系列数が異なるため，外部モデルとVGGT自身のpoint trackを厳密に順位づけることはできない．
 
-### 問3．三処理を事後に選べる場合，complete caseの上限はどれだけか
+### Q3．VGGT単体の姿勢精度が高ければ，bundle adjustmentも安定して使えるか
 
-**答え．Evidence: local-experiment.** 必要な出力が揃う24系列では，三処理の事後最良値が元のVGGT出力を全系列で上回った．改善中央値はPose AUC@30で0.051であった．最良処理は，21系列で正解measurementへの交換，3系列で既存measurementを固定した最適化であり，元の推定をそのまま返す処理は0系列であった．
+**A．今回の記録だけでは判断できない．両者を同じ画像系列ごとに結び付けて保存していなかったためである．**
 
-![Complete-case intervention ceiling](https://github.com/KohsukeIde/e2e-3d-notes/blob/main/figures/oracle_action_ceiling.png?raw=1)
+視点差が大きい画像系列では，VGGT単体のPose AUC@30中央値は0.933であった．一方，外部モデルの対応点を使った試行の57.5%，VGGT自身のpoint trackを使った試行の87.5%では，対応点数や再投影誤差の基準を満たさず，bundle adjustmentの結果を最終出力として採用できなかった．
 
-*図3．左は，各系列で三処理の最良値を選んだ後，元のVGGT出力との差を系列間で中央値集計した値であり，高いほど診断上の上限が大きい．右は各処理が最良となった系列数である．入力は[VGGT縮約集計](../blob/main/data/t36_sequence_summary.json)，SHA-256は`eb86b3845c19115e46331079fa70e4eba193fcba6db77a47c03a3a0aa3b9c0f4`である．必要な出力が揃う24系列だけを含み，missingと拒否時のfallbackは含まない．`make figures`で生成する．*
+![対応点とbundle adjustmentの診断](https://github.com/KohsukeIde/e2e-3d-notes/blob/main/figures/correspondence_diagnostics.png?raw=1)
 
-21/24は，正解measurementを使う処理が最良となった系列数である．measurementが総利得の何割を生んだかを表す数値ではない．正解情報と事後選択を使うため，現実のtrackerまたはselectorの性能でもない．
+*図3．左は標準的な画像で正解対応点との差を測った結果，右は視点差が大きい画像でbundle adjustmentの結果を採用できなかった試行の割合である．左右は集計単位が異なるため，直接対応づけることはできない．*
 
-### 問4．一つのDéjà View checkpointへ長い反復を加えるとどうなるか
+0.933は画像系列ごとに集計した姿勢精度であり，57.5%と87.5%は設定を変えた個々の試行に対する割合である．したがって，「高い姿勢精度だった同じ系列でbundle adjustmentが失敗した」とは言えない．この実験から得た重要な教訓は，姿勢精度とbundle adjustmentの成否を同じ画像系列と試行に対応づけて記録しなければ，失敗原因を検証できないことである．
 
-**答え．Evidence: local-reproduction.** 16回から24回のaggregate metricは同程度であり，統計的不確実性を評価していないため，小差を有意な改善とは扱わない．32回から16回基準を下回り，64回では姿勢スコアが0.954から0.021へ低下した．奥行きの相対絶対誤差は0.0182から0.3126へ増え，約17.2倍となった．
+### Q4．Déjà Viewは，推論時の反復を増やすほど正確になるか
 
-![Déjà View iteration sweep](https://github.com/KohsukeIde/e2e-3d-notes/blob/main/figures/dvlt_k_sweep.png?raw=1)
+**A．増やし続ければよいわけではない．20回と24回では安定して見えたが，64回では姿勢と奥行きの両方が大きく崩れた．**
 
-*図4．同じ公開checkpointとETH3D 13系列に対し，反復回数だけを変えた公式evaluation stackのaggregate metricである．姿勢は高いほど，奥行き誤差は低いほどよい．青い領域は学習範囲，赤い線の32回は16回基準を初めて下回った評価点である．入力は[公式評価の全集計](../blob/main/data/raw/dvlt_r1_r2_r3_summary.json)，SHA-256は`55dbfeecf4c61aae37a4787f1dfc83b42a272023e4460eac3d3d8d4677ff039f`，および[図用の縮約値](../blob/main/data/dvlt_k_sweep.csv)，SHA-256は`c589ed886f012cde4b8f342ba20c5b57b87e6e80b53bde24ea5f92caeae35940`である．各反復回数で同じ13系列を使い，missingは記録されていない．`make figures`で生成する．*
+16回から24回までは，姿勢と奥行きの指標がほぼ同じ水準にあった．しかし，32回から性能が下がり，64回ではPose AUC@30が0.954から0.021へ低下した．奥行き誤差AbsRelは0.0182から0.3126へ増え，約17.2倍になった．
 
-この結果は，一つのcheckpoint，ETH3D 13系列，8回から64回という有限範囲の観測である．Déjà View一般または学習型反復一般の発散を示さない．非自明なのは，学習上限を少し超えた20回から24回では破綻が見えず，それだけでは長い反復のfailureを発見できなかった点である．
+![Déjà Viewの反復回数と精度](https://github.com/KohsukeIde/e2e-3d-notes/blob/main/figures/dvlt_k_sweep.png?raw=1)
 
-## 5．探索的なnegative result：学習型refiner
+*図4．同じ公開モデルとETH3D 13系列に対し，反復回数だけを変えた結果である．青い領域は学習時の反復範囲を示す．*
 
-正解measurementを使わずに姿勢を改善するため，VGGTの初期推定とtrackから姿勢補正を予測するrefinerを試した．仮説は，正しいtrackと壊れたtrackを区別できれば，measurement経路の失敗を姿勢改善へ変換できるというものであった．
+意外だったのは，学習上限の16回を少し超えた20回や24回では，明確な破綻が見えなかった点である．学習範囲を少しだけ超える試験では，長い反復で起きる崩壊を見逃す．ただし，これは一つの公開モデルとETH3D 13系列に限った結果であり，反復型モデル全般の性質とは言えない．
 
-最初のrefinerは，trackを消す，または入れ替えても出力がほとんど変わらず，ETH3Dの良い初期姿勢を悪化させた．何も変更しないgateを加えると悪化は減ったが，同じsceneの正しいtrackと壊したtrackのpairがなく，track差を学ぶlossが機能しなかった．Pairを加えるとtrackへの感度は得られたが，教師更新が投影Jacobianに基づかないheuristicであったため，姿勢精度は改善しなかった．
+### Q5．対応点を入力する学習器を作れば，カメラ姿勢を改善できるか
 
-**Evidence: local-experiment. Scope: exploratory，artifact不完全．** これは「trackを使っていること」と「幾何目的を改善すること」が別の条件だというnegative resultである．ただし，この試行の定量値，解析単位，checkpointを再集計するartifactは本repositoryにない．投影Jacobianから更新を計算するhybrid設計は，結論ではなく次に検証する仮説である．
+**A．今回試した学習器では改善できなかった．対応点の違いに反応するだけでは，正しい姿勢補正を求められなかった．**
 
-## 6．何が非自明か
+VGGTの初期出力と対応点から，姿勢の補正量を予測する小さなニューラルネットワークを試した．最初のモデルは，対応点を消したり入れ替えたりしても出力がほとんど変わらず，対応点を実質的に使っていなかった．正しい対応点と意図的に壊した対応点を対にして学習すると，対応点を変えたときに出力も変わるようになった．それでも，カメラ姿勢の精度は改善しなかった．
 
-第一に，stress集合では系列単位の初期姿勢中央値0.933と，試行単位の高い拒否率が別々に観測された．両者の系列対応がないため，初期姿勢からbundle adjustmentの適用可能性を予測できるかは未検証である．現段階では，二つの指標を集合レベルで別々に報告すべきことを示唆する．
+この結果から，少なくとも二つの検査が必要だと分かる．第一に，学習器が対応点を実際に使っているかを，対応点を消す，入れ替える，壊すといった操作で確かめる．第二に，その出力が幾何学的に正しい方向へ姿勢を動かすかを確かめる．前者を満たしても，後者を満たすとは限らない．この試行は定量的な再現データが残っていないため，主要結果ではなく，うまくいかなかった試行から得た設計上の知見として扱う．
 
-第二に，同じ初期値と同じsolverを使っても，measurement構築経路を変えるとcomplete-case上限が変わった．24系列の事後最良値はすべて正で，21系列では正解measurementを使う処理が最良だった．次に調べるべきものはsolver反復だけではなく，対応精度，観測数，空間被覆，画像間接続のどれが差を作るかである．
+## 何が予想外だったか
 
-第三に，反復modelの学習範囲を一度だけ超える試験では，長い外挿のfailureを見逃す．今回のDéjà View checkpointは20回から24回では16回と同程度だったが，64回で大きく崩れた．反復回数を運用時に変えるなら，想定最大値までのstress testまたは停止条件が必要である．この含意は今回のcheckpointに限定される．
+1. **姿勢推定モデルを変えなくても改善余地が確認された．** 正解対応点を使う処理が24系列中21系列で最良であり，少なくとも今回の上限診断では，対応点生成が有力な改善対象であった．
+2. **短い範囲外試験は，長い反復での崩壊を予測しなかった．** Déjà Viewは20回と24回では安定して見えたが，64回で大きく崩れた．
+3. **対応点に反応する学習器でも，姿勢は良くならなかった．** 入力への感度と，幾何学的に妥当な更新は別の性質であった．
+4. **保存方法そのものが仮説検証を妨げた．** 姿勢精度とbundle adjustmentの成否を同じ画像系列と試行に対応づけて保存していなかったため，初期姿勢が失敗原因かを検証できなかった．
 
-第四に，入力trackへの感度を学習しても，幾何改善にはならなかった．入力依存性のcontrolと，再投影誤差を下げる更新のcontrolを分ける必要がある．
+## 次に行う実験
 
-## 7．次の決定的な実験
+第一に，点の数，画像内の位置，画像間の接続を揃えたまま，対応が正しいかどうかだけを変える．これにより，今回の差が誤対応，点の不足，画像内の偏りのどれから生じたかを切り分ける．
 
-1. 同じquery位置，点数，track長，空間被覆を保ったまま対応だけを正解または破壊し，measurementのどの性質が差を生むかを調べる．
-2. 拒否時に元のVGGT出力へ戻す規則を含め，全29系列で処理選択後のutilityを評価する．
+第二に，bundle adjustmentの結果を採用できなかった場合は元のVGGT出力を返す．この規則を含む最終結果を29系列すべてで評価する．今回の24系列の結果は改善可能性の上限であり，実運用時の性能ではない．
 
-**Evidence: inference.** 設計候補は，学習器がmeasurementの信頼度，外れ値重み，damping，対応候補，処理ごとの改善見込みを予測し，姿勢更新を投影Jacobianに基づくGauss-NewtonまたはLevenberg-Marquardtで計算する構成である．これは未検証の次仮説であり，今回の実験が必要性を証明したものではない．
+第三に，姿勢精度，対応点数，再投影誤差，bundle adjustmentの成否を，同じ画像系列と試行の単位で保存する．これにより，「初期姿勢が悪いから失敗した」という仮説を直接検証できる．
 
-## 8．限界と撤回事項
+## この結果からは言えないこと
 
-- 初期値について測ったのはカメラ姿勢であり，depthと3D点を含む初期3D推定全体の品質ではない．
-- 初期姿勢中央値と拒否率の解析単位が異なり，系列ごとの共起を確認できない．拒否率の分子と分母も縮約artifactに残っていない．
-- 正解measurementは対応精度だけでなく点数と被覆も変えるため，どの性質が差を生んだかは未識別である．
-- solverの種類，反復上限，dampingを振っておらず，より強いsolverとの比較ではない．
-- 24系列の結果はcomplete-caseの事後上限である．全29系列のfallback後utilityと実用selectorは未評価である．
-- π³とMapAnythingで同じ診断は完了していない．
-- Déjà Viewの17回以上は学習範囲外であり，一つの公開checkpointの外挿耐性を測った結果である．
-- 初期集計では設定違いの510実行を独立sampleとして扱っていた．これは誤りであり，現在はbase sequence内で先に集約している．
-- 初期の学習型refinerには収束保証があると報告したが，保証条件を別のsolverへ誤適用していた．この主張は撤回済みである．
-- 87.5%はVGGT自身のtrack，57.5%は外部トラッカーの拒否率であり，単一値として扱わない．
-- 最適化に成功した系列だけの評価にはcomplete-case biasがある．運用性能を名乗るには拒否時のfallbackを含める必要がある．
+- 正解対応点は実際の推論では使えないため，Pose AUC@30の中央値+0.051を実用手法の改善量とは呼べない．
+- 正解対応点は，対応の正しさだけでなく，点の数と分布も変える．どの要因が効いたかはまだ分からない．
+- 視点差が大きい画像で，初期姿勢とbundle adjustmentの失敗が同じ系列に生じたとは確認できていない．
+- Déjà Viewの結果は，一つの公開モデルとETH3D 13系列に限られる．
+- π³とMapAnythingでは，同じ検証をまだ行っていない．
 
-## 9．再現artifact
+<details>
+<summary>実行設定と保存済みデータ</summary>
 
-```bash
-pip install -r requirements.txt
-make check
-```
+### VGGT
 
-`make check`は，保存済みJSON，縮約CSV，headline値，SHA-256，figureの相互整合性を検証する．model inferenceやbundle adjustmentを再実行するcommandではない．
+- 使用モデル: `facebook/VGGT-1B`
+- 入力解像度: 読み込み時の最大辺1024 px，モデル入力518 px
+- 対応点: 最大4096点，対応点検索の基準画像8枚，可視性スコア0.2以上
+- カメラ表現: OpenCVのworld-to-camera，PINHOLE，内部パラメータ固定
+- Bundle adjustment: soft-L1，最大80回
+- 対応点の採用条件: 初期再投影誤差12 px以下，2画像以上で追跡，1画像あたり16点以上
+
+### Déjà View
+
+- 使用モデル: `nvidia/dvlt`，1.17億パラメータ
+- データ: ETH3D 13系列
+- 実行環境: Python 3.12，PyTorch 2.5.1，CUDA 12.4，ABCIのGPU 1基
+
+保存済みの集計値から，本文の数値と図は再生成できる．一方，実行時に使った上流コードと公開モデルの版，一部の実行出力が残っていないため，このリポジトリだけから全実験を再実行することはできない．
 
 - [詳細レポート](../blob/main/reports/2026-07-10-vggt-dvlt-correspondence.md)
-- [Déjà Viewの保存済み全集計](../blob/main/data/raw/dvlt_r1_r2_r3_summary.json)
-- [VGGTの訂正版系列集計](../blob/main/data/t36_sequence_summary.json)
-- [レポート保存契約](../blob/main/docs/reporting_contract.md)
+- [Déjà Viewの集計データ](../blob/main/data/raw/dvlt_r1_r2_r3_summary.json)
+- [VGGTの系列単位集計](../blob/main/data/t36_sequence_summary.json)
 
-Déjà View実行時のexact upstream commit，checkpoint revision，config dumpが残っていない．VGGT診断も，一部raw JSON，系列と試行の対応表，run manifestが残っていない．このためDéjà Viewは再現性grade B，VGGTはC寄りのBである．主要数値と図は再生成できるが，全実行をrawから再構築できない．
+</details>
 
 ## 一次資料
 
 - [VGGT paper](https://arxiv.org/abs/2503.11651) / [official code](https://github.com/facebookresearch/vggt)
-- [Déjà View paper](https://arxiv.org/abs/2605.30215) / [official code](https://github.com/nv-tlabs/dvlt) / [checkpoint](https://huggingface.co/nvidia/dvlt)
-- [π³ official code](https://github.com/yyfz/Pi3)
-- [MapAnything official code](https://github.com/facebookresearch/map-anything)
+- [Déjà View paper](https://arxiv.org/abs/2605.30215) / [official code](https://github.com/nv-tlabs/dvlt) / [公開モデル](https://huggingface.co/nvidia/dvlt)

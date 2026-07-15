@@ -1,5 +1,5 @@
 name: E2E 3D experiment report
-description: 背景，対立仮説，識別実験，結果，含意をprovenance付きで保存する
+description: 背景，比較方法，結果とQ&A，予想外だった点を読みやすく保存する
 title: "[Experiment] "
 labels:
   - experiment
@@ -27,98 +27,98 @@ body:
   - type: textarea
     id: background
     attributes:
-      label: Background
+      label: 背景
       description: 既存論文または実運用のどの観測が，この実験を必要にしたかを書く
     validations:
       required: true
   - type: textarea
     id: research_question
     attributes:
-      label: Research question
-      description: この実験が答える問いを一つの疑問文で書く
+      label: 中心となる問い
+      description: 結果を知らない読者がそのまま理解できる疑問文を書く
     validations:
       required: true
   - type: textarea
     id: hypotheses
     attributes:
-      label: Competing hypotheses
+      label: 考えられる複数の説明
       description: 複数の説明と，それぞれが予測する観測結果を書く
     validations:
       required: true
   - type: textarea
     id: intervention
     attributes:
-      label: Controlled intervention
-      description: 入力，初期値，対応点，solver，metricのうち，何を固定し何だけを変えたかを書く
+      label: 比較で固定したものと変えたもの
+      description: 入力，初期値，対応点，最適化器，評価指標のうち，何を固定し何だけを変えたかを書く
     validations:
       required: true
   - type: textarea
     id: model
     attributes:
-      label: Model and checkpoint
-      description: Model，parameter count，checkpoint ID / SHA，upstream commit，license
+      label: 使用モデル
+      description: モデル名，パラメータ数，配布元，使用した版，ライセンス
     validations:
       required: true
   - type: textarea
     id: data
     attributes:
-      label: Dataset and analysis unit
-      description: Split，base sequence IDs/count，within-unit repeats，missing / refusalの扱い
+      label: データセットと集計単位
+      description: 分割，画像系列数，同じ系列への反復測定，欠損と失敗の扱い
     validations:
       required: true
   - type: textarea
     id: geometry
     attributes:
-      label: Geometry conventions
-      description: Camera convention，intrinsics，scale，gauge，alignment，実dataによる検証
+      label: 3Dの座標系
+      description: カメラの向き，内部パラメータ，scale，gauge，alignment，実データによる検証
     validations:
       required: true
   - type: textarea
     id: execution
     attributes:
-      label: Tracker, solver, and runtime settings
-      description: Query数，visibility，loss，iteration cap，health gate，versions，hardware，seed
+      label: 対応点，最適化，実行環境
+      description: 対応点数，可視性の基準，誤差関数，反復上限，結果の採用条件，ソフトウェア，計算機，seed
     validations:
       required: true
   - type: textarea
     id: metrics
     attributes:
-      label: Metrics
-      description: Metricの意味，良い方向，集計単位を書く
+      label: 評価指標
+      description: 指標の意味，良い方向，集計単位を書く
     validations:
       required: true
   - type: textarea
     id: results
     attributes:
-      label: Results
-      description: 各research questionへのanswerを先に書き，analysis unitとscopeを揃えたtableまたはfigureで支える
+      label: 結果とQ&A
+      description: 自然な疑問文を立て，Aの第一文で直接答え，図表で支える
     validations:
       required: true
   - type: textarea
     id: non_triviality
     attributes:
-      label: What is non-trivial?
-      description: 自然だった予想，両立しない観測，除外した説明，次のmethod choiceを書く
+      label: 何が予想外だったか
+      description: 自然だった予想，予想外の観測，言える範囲，次の手法選択を書く
     validations:
       required: true
   - type: textarea
     id: caveats
     attributes:
-      label: Limitations and retractions
-      description: Complete-case bias，invalid claim，欠けたraw artifact，未検証の外挿を書く
+      label: 限界と訂正
+      description: 比較可能な系列だけの偏り，誤った主張，欠けた元データ，未検証の外挿を書く
     validations:
       required: true
   - type: textarea
     id: artifacts
     attributes:
-      label: Reproduction artifacts
-      description: Raw JSON / CSV，config，aggregation script，figure script，一次資料
+      label: 再現用ファイル
+      description: JSON / CSV，設定，集計スクリプト，図生成スクリプト，一次資料
     validations:
       required: true
   - type: textarea
     id: next_test
     attributes:
-      label: Next make-or-break test
+      label: 次の決定的な実験
       description: どの結果が現在の結論を変えるかを一つに絞る
     validations:
       required: true
@@ -129,21 +129,25 @@ body:
       options:
         - label: 背景，対立仮説，識別実験を結果より前に書いた
           required: true
-        - label: 内部のarm名，variant名，script名を本文から除いた
+        - label: 内部の実験名，条件名，スクリプト名を本文から除いた
+          required: true
+        - label: 一つの概念に一つの呼び方を使い，日本語と英語の混成表現を除いた
+          required: true
+        - label: Qは自然な疑問文で，Aの第一文だけで答えが分かる
           required: true
         - label: 本文を「だ・である」調へ統一した
           required: true
-        - label: repeated measuresを独立sampleとして数えていない
+        - label: 同じ画像系列への設定違いを，独立した画像系列として数えていない
           required: true
-        - label: sequence-levelとattempt-levelを混ぜず，異なる場合はpaired relationがないことを書いた
+        - label: 系列単位と試行単位を混ぜず，対応関係がない場合は明記した
           required: true
-        - label: figure captionへ入力，SHA-256，subset，analysis unit，集約，metric方向を書いた
+        - label: 図注を短くし，内部ファイル名や生成手順は再現性欄へ移した
           required: true
-        - label: complete-case上限，selector性能，deployment utilityを区別した
+        - label: 比較可能な系列の上限，処理選択器の性能，実運用性能を区別した
           required: true
-        - label: refusalとmissing outputを結果から消していない
+        - label: 失敗と欠損を結果から消していない
           required: true
-        - label: paper factとlocal observationを区別した
+        - label: 原論文の事実と手元の観測を区別した
           required: true
-        - label: upstream assetのlicenseを確認した
+        - label: 配布元のライセンスを確認した
           required: true

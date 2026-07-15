@@ -1,108 +1,94 @@
-# E2E 3D実験レポート保存契約
+# E2E 3D実験レポートの保存ルール
 
-この契約の目的は，半年後に別の研究者が，コードや会話履歴を知らなくても「なぜ実験したか」「何を信じてよいか」「どの条件なら再現できるか」を判断できる状態を作ることである．
+目的は，コードや会話履歴を知らない人が，半年後に読んでも「なぜ実験したか」「何を比較したか」「何が分かったか」を理解できる記録を作ることである．
 
-## 1．結論より前に研究の問いを作る
+## 1．説明の順序
 
-各レポートは次の順序で書く．
+レポートは次の順序で書く．
 
-1. 既存論文または実運用のどの観測が出発点か
-2. その観測に対する複数の説明は何か
-3. 説明ごとに，どの結果が予測されるか
-4. 何を固定し，何だけを変えて説明を区別したか
-5. 実験結果はどの説明を支持または棄却したか
-6. その結果が従来の想定をどう変えるか
+1. 既存研究のどの結果から疑問が生じたか
+2. その疑問に対して，どのような説明が考えられるか
+3. 説明を区別するため，何を固定して何を変えたか
+4. 使用したデータ，モデル，評価指標
+5. 結果とQ&A
+6. 何が予想外だったか
+7. まだ言えないことと，次の実験
 
-「modelの出力を改善する」「pipelineが壊れる」のような表現を，問題設定なしで使わない．何を入力し，何を出力し，どの処理を追加し，何のmetricを改善する話かを先に定義する．
+「モデルを改善する」「処理が壊れる」のような抽象表現を，問題設定なしで使わない．何を入力し，何を出力し，どの指標がどう変わる話なのかを先に書く．
 
-## 2．ゼロコンテキストで読める本文にする
+## 2．自然な日本語で書く
 
-- 内部のarm名，variant名，stage名，script名，job名を本文へ出さない．
-- 内部識別子の代わりに，「強い外部トラッカー」「VGGT自身のtrack」「完全対応点」のように役割を書く．
-- 専門語は最初に必要になった場所で，実験上の役割とともに定義する．読者層を名指しした別primerへ説明を追い出さない．
-- 略語は初出で展開し，その後も概念が曖昧なら日本語の役割名を使う．
-- 本文は「だ・である」調とし，日本語の句読点は「，．」へ統一する．
-- Figure captionだけでも，何を比較し，どの方向が良く，何が観測されたか分かるようにする．
+- 一つの概念に一つの呼び方を使う．同じものを日本語と英語で交互に呼ばない．
+- 画像間で同じ3D点を指す画素は「対応点」，視点差が大きく対応点を求めにくい入力は「視点差が大きい画像」と呼ぶ．途中で別の呼び方へ変えない．
+- bundle adjustment，Pose AUC@30のような分野で標準的な用語は英語のままでよい．初出では役割を一文で説明する．
+- 日本語だけで自然に説明できる箇所へ，不要な英単語を挟まない．
+- 内部の実験名，変数名，スクリプト名，job名を本文へ出さない．
+- 本文は「だ・である」調とし，句読点は「，．」へ統一する．
 
-## 3．Claimごとにevidence statusを付ける
+## 3．Q&Aは読者が実際に抱く疑問にする
 
-`paper`，`local-reproduction`，`local-experiment`，`inference`，`retracted`のいずれかを付ける．原論文の主張と手元の観測を同じ事実として混ぜない．
+Qは，結果を知らない読者がそのまま口にできる疑問文にする．
 
-## 4．Analysis unitを最初に固定する
+- 良い例: 「Déjà Viewは，推論時の反復を増やすほど正確になるか」
+- 良い例: 「標準的な画像でも，推定した対応点と正解対応点に差はあるか」
+- 悪い例: 内部の実験名や集計用語を，説明なしに問いへ入れる．
+- 悪い例: 「改善できるか」のように，何の指標を改善するかが分からない問いにする．
 
-- primary unit: base scene / base sequence
-- within-unit repeats: kernel，jitter，frame count，seed
-- attempt-level failure: refusal，crash，missing data
+各Aの第一文は，Qへ直接答える完全な文にする．その後を「証拠となる図表」「数値の意味」「言えない範囲」の2から5文で構成する．
 
-反復測定はsample sizeを増やさない．sequence内で先に集約し，その後sequence間を比較する．attempt-levelの率とsequence-levelの率を同じ数字として扱わない．
+## 4．原論文の事実と手元の結果を混ぜない
 
-## 5．何を変え，何を固定したかを書く
+`paper`，`local-reproduction`，`local-experiment`，`inference`，`retracted`のラベルは冒頭または末尾の根拠一覧へ保存する．本文の各段落へラベルを挿入して読みづらくしない．文章では，「VGGT論文では」「今回の実験では」「ここからの解釈は」のように主語を明示する．
 
-因果的な解釈を行う場合，controlled swapを明示する．少なくともinput data，initialization，correspondence，solver，metricのうち，どれを固定し，どれを変更したかを書く．複数要因を同時に変えた比較から，単一要因の原因を主張しない．
+## 5．集計単位を混ぜない
 
-正解correspondenceがquery位置，観測数，track長，空間被覆，画像間接続も変える場合，これはcorrespondence correctnessだけの交換ではなく，measurement構築経路全体の交換である．単一要因を主張するには，supportを一致させたcontrolが必要である．Solverを固定した比較から「より強いsolverでも直らない」と主張せず，solver強度のsweepを別に行う．
+画像系列ごとの値，設定を変えた個々の試行の値，画像対ごとの値を区別する．同じ系列へ複数の設定を試しても，系列数は増えない．
 
-## 6．最低限保存する設定
+系列単位の姿勢精度と，試行単位の失敗率を並べる場合，両者を系列ごとに対応づけられるかを書く．対応表がなければ，同じ系列で二つの現象が起きたとは主張しない．
 
-| Group | Fields |
-|---|---|
-| Model | name，parameter count，checkpoint ID / SHA，upstream commit，license |
-| Input | image resolution，frame sampling，frame count，crop / resize |
-| Geometry | camera-to-world / world-to-camera，OpenCV / OpenGL，intrinsics，scale，alignment |
-| Tracks | extractor，query数，visibility，track length，outlier rule |
-| Solver | backend，optimized variables，loss，damping，iteration cap，health gate |
-| Data | dataset，split，base sequence IDs/count，group定義，除外理由 |
-| Statistics | primary unit，repeat axes，missing / refusalの扱い，test |
-| Runtime | Python，PyTorch / CUDA，GPU，walltime，seed |
+## 6．何を固定し，何を変えたかを書く
 
-Exact revisionを回収できない場合は推測で埋めず，`unverified`としてartifact gapを残す．
+因果的な解釈を行う場合，入力画像，初期値，対応点，最適化器，評価指標のうち，何を固定し，何を変更したかを書く．複数のものを同時に変えた比較から，単一の原因を断定しない．
 
-## 7．Refusalを結果から消さない
+正解対応点を使うと，対応の正しさだけでなく，点の位置，数，画像内の分布，画像間の接続も変わる．これらを揃えていない比較は「対応点生成全体の差」と呼ぶ．
 
-最適化が拒否されたsceneをcomplete-case集計から落とすと，成功しやすいsceneだけが残る．deployment utilityでは，原則としてrefusal時にfeed-forward出力を返したものとして評価する．refusal rate自体もfirst-class metricである．
+## 7．設定は本文と再現性欄に分ける
 
-Sequence-levelのmetricとattempt-levelのrefusal rateを並べる場合，解析単位の違いをcaptionと本文に明記する．系列と試行を結ぶ表がなければ，同一系列で二つの現象が共起したとは主張しない．Complete-caseの事後最良値は診断上限と呼び，selector性能またはdeployment utilityと呼ばない．
+本文には，結果を理解するために必要な設定だけを書く．学習済みモデルの版，package version，seed，停止判定，camera conventionなどの詳細は，末尾の再現性欄または設定ファイルへ置く．
 
-## 8．Conventionを実dataで検証する
+最低限保存する項目は，モデルと学習済みモデルの版，入力解像度と画像枚数，camera convention，対応点の作り方，最適化設定，データセットとsplit，評価指標，実行環境である．不明な値を推測で埋めない．
 
-Synthetic self-testやself-reprojectionだけでは不十分である．正解cameraとdepthのある実sequenceで，projection，positive depth，front-facing率，depth consistencyを確認する．内部再投影が小さいだけでは，ground-truth conventionとの一致を証明できない．
+## 8．失敗した実行を消さない
 
-## 9．Figureの入力をcommitする
+最適化が失敗した系列を除いて平均を取ると，処理しやすい系列だけが残る．失敗した数と理由を別に報告する．実運用性能を評価するときは，失敗時に元のfeed-forward出力を返した結果も含める．
 
-各figureにCSVまたはJSON，生成script，captionのclaimを対応づける．論文PDFから手入力した数値と，local artifactから抽出した数値を区別する．Figureは結果だけでなく，実験で固定したものと変更したものを説明するためにも使う．
+三種類の処理結果がすべて揃った系列だけで事後的な最良値を選ぶ場合は，「比較可能な系列における上限」と呼ぶ．処理選択器の性能や実運用性能とは呼ばない．
 
-各定量figureのcaptionには，入力fileとSHA-256，対象subset，analysis unit，missingとrefusalの扱い，集約方法，metricの良い方向，生成commandを書く．異なるanalysis unitを一つのfigureへ置く場合は，panel間のpaired relationを意味しないことを明示する．数値入力のない概念図は，生成scriptとcommandを示す．
+## 9．図注は短く，監査情報は本文から外す
 
-## 10．何が非自明かを明示する
+図注には，何を比較した図か，指標の良い方向，最も重要な観察を書く．集計単位が異なるpanelを並べた場合は，その点も書く．
 
-結果の列挙で終わらず，次を一段落で書く．
+内部ファイル名，生成コマンド，長い集計手順は図注へ入れない．必要な場合は，再現性欄またはデータの説明文へまとめる．
 
-- 実験前に自然だった予想
-- その予想と両立しない観測
-- controlled comparisonによって除外できた説明
-- まだ除外できない説明
-- 次のmethod choiceがどう変わるか
+各図には，入力となるCSVまたはJSONと生成スクリプトをリポジトリ内で対応づける．
 
-「精度が上がった」「失敗率が高かった」だけではnon-trivialな知見にならない．どのdefault assumptionを変える結果かを示す．
+## 10．何が予想外だったかを書く
 
-一つのcheckpoint，一つのdataset，学習範囲外のstress testから，architecture一般またはmethod class一般の性質へ広げない．観測したcheckpoint，dataset，反復範囲をclaimとfigure captionへ残す．
+結果の列挙で終わらず，次の四点を書く．
 
-## 11．撤回を履歴として残す
+1. 実験前に自然だった予想
+2. その予想だけでは説明しにくい観測
+3. 今回の比較で言える範囲と言えない範囲
+4. 次の手法または実験がどう変わるか
 
-誤ったcertificate，誤った独立sample数，未確認のiteration capは削除せず，次を記録する．
+一つの学習済みモデルや一つのデータセットで得た結果を，手法全般の性質へ広げない．
 
-- 以前の主張
-- 破綻させたcounterexampleまたはaudit
-- 影響するfigureとconclusion
-- 生き残る最小主張
-- 次回の防止策
+## 11．誤りを削除せず訂正する
 
-## 12．Reproducibility grade
+誤った独立系列数，適用できない収束保証，成功例だけの集計は，訂正理由とともに残す．以前の主張，誤りが分かった理由，現在残せる主張，再発防止策を記録する．
 
-| Grade | 条件 |
-|---|---|
-| A | raw artifact，exact config，revision，集計scriptから全headlineを再生成可能 |
-| B | headlineの縮約dataとscriptはあるが，一部raw artifactまたはrevisionが欠ける |
-| C | proseまたはtableのみで，第三者が再集計できない |
+## 12．再現性
 
-今回のDéjà View反復実験はB，VGGTの系列単位診断はC寄りのBである．Déjà Viewのfull summary JSONはあるがexact config dumpが欠ける．VGGT診断には訂正版summaryがあるが，系列単位の再集計に必要な一部raw JSONが欠ける．
+保存データ，設定，集計スクリプト，図生成スクリプト，上流コードの版を可能な範囲で残す．
+
+完全な再実行に必要な情報が欠けている場合は，「主要数値と図だけ再生成できる」「モデル実行からは再現できない」のように，実際に可能な範囲を文章で書く．

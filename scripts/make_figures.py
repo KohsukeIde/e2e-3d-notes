@@ -129,12 +129,12 @@ def plot_experiment_design() -> None:
     ax.set_ylim(0, 1)
     ax.axis("off")
 
-    ax.text(0.5, 0.96, "Two diagnostics isolate measurement construction and recurrent application count", ha="center", va="top", fontsize=14.5)
-    ax.text(0.03, 0.87, "TEST 1  Does the measurement-construction path change the attainable result?", weight="bold", fontsize=11.5)
+    ax.text(0.5, 0.96, "Two tests ask what actually limits feed-forward 3D", ha="center", va="top", fontsize=15)
+    ax.text(0.03, 0.87, "TEST 1  Does the source of image correspondences change the final pose?", weight="bold", fontsize=11.5)
     ax.text(
         0.97,
         0.80,
-        "Hold fixed: images, VGGT estimate, and solver   |   Swap: measurement-construction path",
+        "Hold fixed: images, VGGT estimate, and BA solver   |   Change: correspondence source and coverage",
         ha="right",
         fontsize=9.5,
         color="#555555",
@@ -148,12 +148,12 @@ def plot_experiment_design() -> None:
         0.51,
         0.20,
         0.26,
-        "Swap measurement construction\n\nExternal tracker\nVGGT track head\nGround-truth projection",
+        "Change image correspondences\n\nExternal tracker\nVGGT track head\nGround-truth correspondences",
         "#d9f0ed",
         fontsize=9.2,
     )
     _box(ax, 0.66, 0.56, 0.14, 0.16, "Same bundle-\nadjustment solver", "#eee3f6")
-    _box(ax, 0.85, 0.56, 0.12, 0.16, "Pose score\nor refusal", "#f6dddd")
+    _box(ax, 0.85, 0.56, 0.12, 0.16, "Pose score\nor invalid BA result", "#f6dddd", fontsize=9.2)
     _arrow(ax, (0.14, 0.64), (0.19, 0.64))
     _arrow(ax, (0.36, 0.64), (0.41, 0.64))
     _arrow(ax, (0.61, 0.64), (0.66, 0.64))
@@ -162,14 +162,14 @@ def plot_experiment_design() -> None:
     ax.text(
         0.5,
         0.40,
-        "A changed result attributes part of the gap to the measurement path; it does not isolate match correctness alone.",
+        "Ground-truth correspondences define an upper bound; they are not a deployable method.",
         ha="center",
         fontsize=10.5,
         color="#333333",
     )
 
     ax.plot([0.03, 0.97], [0.34, 0.34], color="#cccccc", linewidth=1)
-    ax.text(0.03, 0.27, "TEST 2  What happens when one checkpoint is applied beyond its trained iteration range?", weight="bold", fontsize=11.5)
+    ax.text(0.03, 0.27, "TEST 2  Does one Déjà View checkpoint keep improving as we add iterations?", weight="bold", fontsize=11.5)
     _box(ax, 0.10, 0.07, 0.14, 0.12, "Multi-view\nRGB", "#f1f1f1")
     _box(ax, 0.32, 0.07, 0.20, 0.12, "Déjà View\nshared block repeated", "#dce9f8")
     _box(ax, 0.60, 0.07, 0.16, 0.12, "8, 12, 16, ...\n48, 64 applications", "#f9e7b3")
@@ -197,7 +197,7 @@ def plot_dvlt(rows: list[dict]) -> None:
         ax.grid(axis="y", color="#dddddd", linewidth=0.7)
 
     axes[0].plot(ks, pose, marker="o", color="#4c78a8", linewidth=2.2)
-    axes[0].set_title("Pose quality degrades under long extrapolation")
+    axes[0].set_title("Long out-of-range iteration degrades pose")
     axes[0].set_xlabel("Number of recurrent applications")
     axes[0].set_ylabel("ETH3D Pose AUC@30 (higher is better)")
     axes[0].set_ylim(0, 1.03)
@@ -214,7 +214,7 @@ def plot_dvlt(rows: list[dict]) -> None:
     axes[1].annotate("0.313", (64, absrel[-1]), xytext=(45, 0.16), arrowprops={"arrowstyle": "->"})
     axes[1].legend(frameon=False, loc="upper left")
 
-    fig.suptitle("Déjà View: one checkpoint under out-of-range recurrent application", y=1.03, fontsize=14)
+    fig.suptitle("More iterations eventually break one Déjà View checkpoint", y=1.03, fontsize=14)
     fig.tight_layout()
     fig.savefig(FIGURES / "dvlt_k_sweep.png", bbox_inches="tight")
     plt.close(fig)
@@ -228,23 +228,23 @@ def plot_action_ceiling(summary: dict) -> None:
 
     fig, axes = plt.subplots(1, 2, figsize=(10.2, 4.2), gridspec_kw={"width_ratios": [1.2, 1]})
     colors = ["#4c78a8", "#72b7b2", "#f2cf5b"]
-    bars = axes[0].bar(["All (n=24)", "Standard (n=15)", "Stress (n=9)"], medians, color=colors)
+    bars = axes[0].bar(["All (n=24)", "Standard-view (n=15)", "Difficult-view (n=9)"], medians, color=colors)
     axes[0].set_ylabel("Median gain of the best available intervention")
-    axes[0].set_title("Post-hoc best-of-three ceiling is positive")
+    axes[0].set_title("Best-of-three pose gain is positive")
     axes[0].set_ylim(0, 0.061)
     axes[0].grid(axis="y", color="#dddddd", linewidth=0.7)
     axes[0].bar_label(bars, fmt="%.3f", padding=3)
 
     action_keys = ["KEEP", "REFINE", "REPAIR"]
-    names = ["Return\nestimate", "Optimize\nfixed tracks", "Replace\ntracks"]
+    names = ["Keep\nVGGT", "BA with\nlearned tracks", "BA with ground-\ntruth tracks"]
     counts = [actions[name] for name in action_keys]
     bars = axes[1].bar(names, counts, color=["#9d9d9d", "#f58518", "#54a24b"])
     axes[1].set_ylabel("Sequences where intervention gives the largest gain")
-    axes[1].set_title("Ground-truth measurements win most often")
+    axes[1].set_title("Which choice gives the best pose?")
     axes[1].set_ylim(0, 24)
     axes[1].bar_label(bars, padding=3)
 
-    fig.suptitle("Complete-case ceiling from three post-hoc choices", y=1.03, fontsize=14)
+    fig.suptitle("Upper bound on sequences with all three results available", y=1.03, fontsize=14)
     fig.tight_layout()
     fig.savefig(FIGURES / "oracle_action_ceiling.png", bbox_inches="tight")
     plt.close(fig)
@@ -259,19 +259,19 @@ def plot_correspondence_diagnostics(summary: dict) -> None:
 
     gap_values = [gaps["a1_external_tracker"]["median_auc30"], gaps["a2_vggt_track_head"]["median_auc30"]]
     bars = axes[0].bar(labels, gap_values, color=["#72b7b2", "#4c78a8"])
-    axes[0].set_ylabel("Median perfect - learned Pose AUC@30")
-    axes[0].set_title("Standard group: small but nonzero gap")
+    axes[0].set_ylabel("Median Pose AUC@30 gap to ground truth")
+    axes[0].set_title("Standard-view data: a small gap remains")
     axes[0].set_ylim(0, 0.04)
     axes[0].bar_label(bars, fmt="%.4f", padding=3)
 
     refusal_values = [refusals["a1_external_tracker"], refusals["a2_vggt_track_head"]]
     bars = axes[1].bar(labels, refusal_values, color=["#f2cf5b", "#e45756"])
-    axes[1].set_ylabel("Stress-group refusal rate (attempt level)")
-    axes[1].set_title("Stress group: measurement pipeline is often refused")
+    axes[1].set_ylabel("Runs without an accepted BA result")
+    axes[1].set_title("Difficult-view data: BA often fails quality checks")
     axes[1].set_ylim(0, 1.0)
     axes[1].bar_label(bars, labels=[f"{100*x:.1f}%" for x in refusal_values], padding=3)
 
-    fig.suptitle("Two diagnostics of the measurement-construction pipeline", y=1.03, fontsize=14)
+    fig.suptitle("Learned correspondences leave a gap to ground truth", y=1.03, fontsize=14)
     fig.tight_layout()
     fig.savefig(FIGURES / "correspondence_diagnostics.png", bbox_inches="tight")
     plt.close(fig)

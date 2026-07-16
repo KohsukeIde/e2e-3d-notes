@@ -53,10 +53,11 @@ def load_summary() -> dict:
     return json.loads((DATA / "t36_sequence_summary.json").read_text())
 
 
-def load_set_filter_results() -> tuple[dict, dict]:
+def load_set_filter_results() -> tuple[dict, dict, dict]:
     geometry = json.loads((DATA / "set_relative_filter_geometry.json").read_text())
     cascade = json.loads((DATA / "iterative_filter_cascade.json").read_text())
-    return geometry, cascade
+    subset_law = json.loads((DATA / "distractor_subset_law.json").read_text())
+    return geometry, cascade, subset_law
 
 
 def validate(rows: list[dict], summary: dict) -> None:
@@ -89,7 +90,7 @@ def validate(rows: list[dict], summary: dict) -> None:
     }
 
 
-def validate_set_filter_results(geometry: dict, cascade: dict) -> None:
+def validate_set_filter_results(geometry: dict, cascade: dict, subset_law: dict) -> None:
     assert geometry["status"] == "complete"
     assert geometry["scene_count"] == 4
     assert geometry["aggregate"]["exact_extension_reversal_scene_count"] == 4
@@ -101,6 +102,21 @@ def validate_set_filter_results(geometry: dict, cascade: dict) -> None:
     assert cascade["aggregate"]["non_idempotent_chain_count"] == 8
     assert cascade["aggregate"]["connector_eventually_rejected_chain_count"] == 8
     assert cascade["aggregate"]["final_survivor_count_range"] == [2, 3]
+    assert subset_law["status"] == "complete"
+    assert subset_law["design"]["total_forward_passes"] == 64
+    assert subset_law["cross_scene"]["actual_rescue_condition_count"] == 44
+    assert subset_law["cross_scene"]["calibration_anchor_rescue_condition_count"] == 44
+    assert subset_law["cross_scene"]["valid_only_calibration_rescue_condition_count"] == 0
+    assert subset_law["cross_scene"]["first_rescue_counts"] == {
+        "gascola_P003": 1,
+        "gascola_P005": 1,
+        "hospital_P000": 1,
+        "hospital_P003": 2,
+    }
+    assert math.isclose(
+        subset_law["cross_scene"]["mean_count_explained_score_variance"],
+        0.9295813233800554,
+    )
 
 
 def style() -> None:
@@ -557,6 +573,116 @@ def plot_iterative_filter_cascade(cascade: dict) -> None:
     plt.close(fig)
 
 
+def plot_distractor_subset_law(results: dict) -> None:
+    scene_order = ("gascola_P003", "gascola_P005", "hospital_P000", "hospital_P003")
+    scene_labels = {
+        "gascola_P003": "Forest 1",
+        "gascola_P005": "Forest 2",
+        "hospital_P000": "Hospital 1",
+        "hospital_P003": "Hospital 2",
+    }
+    colors = {
+        "gascola_P003": "#0072B2",
+        "gascola_P005": "#56B4E9",
+        "hospital_P000": "#D55E00",
+        "hospital_P003": "#CC79A7",
+    }
+    fig, axes = plt.subplots(1, 3, figsize=(17.5, 5.2), gridspec_kw={"width_ratios": [1.05, 1.25, 1.0]})
+
+    for scene in scene_order:
+        summary = results["scenes"][scene]
+        fractions = [
+            summary["by_distractor_count"][str(count)]["both_retained_fraction"]
+            for count in range(5)
+        ]
+        axes[0].plot(
+            range(5),
+            fractions,
+            marker="o",
+            linewidth=2.1,
+            color=colors[scene],
+            label=scene_labels[scene],
+        )
+    axes[0].plot(
+        range(5),
+        [0.0] * 5,
+        color="black",
+        linestyle="--",
+        linewidth=1.4,
+        label="same forwards, valid-only calibration",
+    )
+    axes[0].set_xticks(range(5))
+    axes[0].set_ylim(-0.05, 1.05)
+    axes[0].set_xlabel("Number of distractors among four candidates")
+    axes[0].set_ylabel("Fraction retaining both frontier views")
+    axes[0].set_title("(a) More distractors usually rescue valid views")
+    axes[0].grid(alpha=0.25)
+    axes[0].legend(frameon=False, fontsize=7.5, loc="center right")
+
+    offsets = np.linspace(-0.18, 0.18, len(scene_order))
+    for offset, scene in zip(offsets, scene_order):
+        for row in results["scenes"][scene]["subset_results"]:
+            marker = "o" if row["both_extensions_retained"] else "x"
+            axes[1].scatter(
+                row["distractor_count"] + offset,
+                row["mean_extension_score"],
+                marker=marker,
+                color=colors[scene],
+                s=37,
+                alpha=0.85,
+            )
+    axes[1].axhline(0.4, color="black", linestyle="--", linewidth=1.2)
+    axes[1].set_xticks(range(5))
+    axes[1].set_ylim(-0.02, 0.66)
+    axes[1].set_xlabel("Number of distractors among four candidates")
+    axes[1].set_ylabel("Mean score of the two frontier views")
+    axes[1].set_title("(b) Identity still matters near the threshold")
+    axes[1].grid(axis="y", alpha=0.25)
+    axes[1].text(
+        0.03,
+        0.96,
+        "circle: both retained   ×: at least one rejected",
+        transform=axes[1].transAxes,
+        va="top",
+        fontsize=8,
+    )
+
+    effects = np.asarray(
+        [
+            [
+                item["mean_paired_extension_score_change"]
+                for item in results["scenes"][scene]["slot_effects"]
+            ]
+            for scene in scene_order
+        ]
+    )
+    limit = max(float(np.max(np.abs(effects))), 1.0e-6)
+    image = axes[2].imshow(effects, cmap="RdBu_r", vmin=-limit, vmax=limit, aspect="auto")
+    axes[2].set_xticks(range(4), [f"candidate {index}" for index in range(1, 5)])
+    axes[2].set_yticks(range(4), [scene_labels[scene] for scene in scene_order])
+    axes[2].set_title("(c) Paired effect of distractor identity")
+    for row_index in range(4):
+        for column_index in range(4):
+            axes[2].text(
+                column_index,
+                row_index,
+                f"{effects[row_index, column_index]:+.3f}",
+                ha="center",
+                va="center",
+                fontsize=9,
+            )
+    fig.colorbar(image, ax=axes[2], label="Change in mean frontier-view score", fraction=0.047)
+
+    fig.suptitle(
+        "Valid-view rescue is a set-relative calibration effect, not a one-image rule",
+        y=1.02,
+        fontsize=14,
+    )
+    fig.tight_layout()
+    fig.savefig(FIGURES / "distractor_subset_law.png", bbox_inches="tight")
+    plt.close(fig)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--check", action="store_true", help="validate data and generated files")
@@ -566,9 +692,9 @@ def main() -> None:
     validate_checksums()
     rows = load_csv()
     summary = load_summary()
-    set_filter_geometry, iterative_filter = load_set_filter_results()
+    set_filter_geometry, iterative_filter, subset_law = load_set_filter_results()
     validate(rows, summary)
-    validate_set_filter_results(set_filter_geometry, iterative_filter)
+    validate_set_filter_results(set_filter_geometry, iterative_filter, subset_law)
     style()
     plot_experiment_design()
     plot_dvlt(rows)
@@ -578,6 +704,7 @@ def main() -> None:
     plot_constraint_matched_test()
     plot_set_relative_filter_geometry(set_filter_geometry)
     plot_iterative_filter_cascade(iterative_filter)
+    plot_distractor_subset_law(subset_law)
 
     if args.check:
         for name in (
@@ -589,6 +716,7 @@ def main() -> None:
             "constraint_matched_test.png",
             "set_relative_filter_geometry.png",
             "iterative_filter_cascade.png",
+            "distractor_subset_law.png",
         ):
             path = FIGURES / name
             assert path.exists() and path.stat().st_size > 10_000, path

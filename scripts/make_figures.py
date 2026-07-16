@@ -53,11 +53,12 @@ def load_summary() -> dict:
     return json.loads((DATA / "t36_sequence_summary.json").read_text())
 
 
-def load_set_filter_results() -> tuple[dict, dict, dict]:
+def load_set_filter_results() -> tuple[dict, dict, dict, dict]:
     geometry = json.loads((DATA / "set_relative_filter_geometry.json").read_text())
     cascade = json.loads((DATA / "iterative_filter_cascade.json").read_text())
     subset_law = json.loads((DATA / "distractor_subset_law.json").read_text())
-    return geometry, cascade, subset_law
+    projectivity = json.loads((DATA / "shared_output_projectivity.json").read_text())
+    return geometry, cascade, subset_law, projectivity
 
 
 def validate(rows: list[dict], summary: dict) -> None:
@@ -90,7 +91,9 @@ def validate(rows: list[dict], summary: dict) -> None:
     }
 
 
-def validate_set_filter_results(geometry: dict, cascade: dict, subset_law: dict) -> None:
+def validate_set_filter_results(
+    geometry: dict, cascade: dict, subset_law: dict, projectivity: dict
+) -> None:
     assert geometry["status"] == "complete"
     assert geometry["scene_count"] == 4
     assert geometry["aggregate"]["exact_extension_reversal_scene_count"] == 4
@@ -116,6 +119,18 @@ def validate_set_filter_results(geometry: dict, cascade: dict, subset_law: dict)
     assert math.isclose(
         subset_law["cross_scene"]["mean_count_explained_score_variance"],
         0.9295813233800554,
+    )
+    assert projectivity["status"] == "complete"
+    assert projectivity["design"]["forward_count"] == 16
+    projectivity_summary = projectivity["summary"]
+    assert projectivity_summary["score_control_passed_scene_count"] == 4
+    assert projectivity_summary["distractor_accuracy_worsened_scene_count"] == 4
+    assert projectivity_summary["redundant_accuracy_worsened_scene_count"] == 1
+    assert projectivity_summary["distractor_shift_exceeds_redundant_scene_count"] == 4
+    assert projectivity_summary["distractor_extension_shift_exceeds_core_scene_count"] == 4
+    assert math.isclose(
+        projectivity_summary["median_distractor_minus_redundant_relative_error_effect"],
+        0.34326083207841385,
     )
 
 
@@ -683,6 +698,110 @@ def plot_distractor_subset_law(results: dict) -> None:
     plt.close(fig)
 
 
+def plot_shared_output_projectivity(results: dict) -> None:
+    labels = ("Forest 1", "Forest 2", "Hospital 1", "Hospital 2")
+    rows = results["scenes"]
+    x = np.arange(4, dtype=float)
+    width = 0.35
+    distractor_color = "#D55E00"
+    redundant_color = "#0072B2"
+    fig, axes = plt.subplots(1, 3, figsize=(15.5, 4.7))
+
+    distractor_shift = [
+        100.0
+        * row["comparisons_to_common_only"]["distractor_context"][
+            "point_shift_fraction_of_camera_diameter"
+        ]["all_shared"]["median"]
+        for row in rows
+    ]
+    redundant_shift = [
+        100.0
+        * row["comparisons_to_common_only"]["redundant_context"][
+            "point_shift_fraction_of_camera_diameter"
+        ]["all_shared"]["median"]
+        for row in rows
+    ]
+    axes[0].bar(
+        x - width / 2,
+        distractor_shift,
+        width,
+        color=distractor_color,
+        label="other-scene distractors",
+    )
+    axes[0].bar(
+        x + width / 2,
+        redundant_shift,
+        width,
+        color=redundant_color,
+        label="same-scene redundant",
+    )
+    axes[0].axhline(1.0, color="black", linestyle="--", linewidth=1)
+    axes[0].set_ylabel("Median shared point shift (% camera diameter)")
+    axes[0].set_title("(a) Distractors move shared point maps more")
+    axes[0].legend(frameon=False, fontsize=8)
+
+    core_shift = [
+        100.0
+        * row["comparisons_to_common_only"]["distractor_context"][
+            "point_shift_fraction_of_camera_diameter"
+        ]["core"]["median"]
+        for row in rows
+    ]
+    extension_shift = [
+        100.0
+        * row["comparisons_to_common_only"]["distractor_context"][
+            "point_shift_fraction_of_camera_diameter"
+        ]["extension"]["median"]
+        for row in rows
+    ]
+    axes[1].bar(
+        x - width / 2, core_shift, width, color="#999999", label="core-side views"
+    )
+    axes[1].bar(
+        x + width / 2, extension_shift, width, color="#CC79A7", label="frontier views"
+    )
+    axes[1].set_ylabel("Median point shift (% camera diameter)")
+    axes[1].set_title("(b) The frontier changes more than the core")
+    axes[1].legend(frameon=False, fontsize=8)
+
+    distractor_error = [
+        100.0 * row["point_error_relative_change"]["distractor_context"] for row in rows
+    ]
+    redundant_error = [
+        100.0 * row["point_error_relative_change"]["redundant_context"] for row in rows
+    ]
+    axes[2].bar(
+        x - width / 2,
+        distractor_error,
+        width,
+        color=distractor_color,
+        label="other-scene distractors",
+    )
+    axes[2].bar(
+        x + width / 2,
+        redundant_error,
+        width,
+        color=redundant_color,
+        label="same-scene redundant",
+    )
+    axes[2].axhline(0.0, color="black", linewidth=1)
+    axes[2].set_ylabel("Change in shared point error to ground truth (%)")
+    axes[2].set_title("(c) Distractors worsen accuracy in all four scenes")
+    axes[2].legend(frameon=False, fontsize=8)
+
+    for axis in axes:
+        axis.set_xticks(x, labels, rotation=20, ha="right")
+        axis.grid(axis="y", alpha=0.25)
+    fig.suptitle(
+        "Correctly rejected distractors still perturb VGGT's valid-view geometry",
+        y=1.02,
+        fontsize=14,
+    )
+    fig.tight_layout()
+    fig.savefig(FIGURES / "shared_output_projectivity.png", bbox_inches="tight")
+    plt.close(fig)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--check", action="store_true", help="validate data and generated files")
@@ -692,9 +811,11 @@ def main() -> None:
     validate_checksums()
     rows = load_csv()
     summary = load_summary()
-    set_filter_geometry, iterative_filter, subset_law = load_set_filter_results()
+    set_filter_geometry, iterative_filter, subset_law, projectivity = load_set_filter_results()
     validate(rows, summary)
-    validate_set_filter_results(set_filter_geometry, iterative_filter, subset_law)
+    validate_set_filter_results(
+        set_filter_geometry, iterative_filter, subset_law, projectivity
+    )
     style()
     plot_experiment_design()
     plot_dvlt(rows)
@@ -705,6 +826,7 @@ def main() -> None:
     plot_set_relative_filter_geometry(set_filter_geometry)
     plot_iterative_filter_cascade(iterative_filter)
     plot_distractor_subset_law(subset_law)
+    plot_shared_output_projectivity(projectivity)
 
     if args.check:
         for name in (
@@ -717,6 +839,7 @@ def main() -> None:
             "set_relative_filter_geometry.png",
             "iterative_filter_cascade.png",
             "distractor_subset_law.png",
+            "shared_output_projectivity.png",
         ):
             path = FIGURES / name
             assert path.exists() and path.stat().st_size > 10_000, path

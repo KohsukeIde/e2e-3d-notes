@@ -1,0 +1,791 @@
+{
+  "design": {
+    "alignment": "five core-side views only; 80% trimmed Sim(3); three iterations",
+    "conditions": [
+      "shared views only",
+      "identical-input repeat",
+      "shared views plus four other-scene distractors",
+      "shared views plus four same-scene redundant views"
+    ],
+    "context_view_count": 4,
+    "forward_count": 16,
+    "sampling": "1024 fixed ground-truth-valid pixels per shared view",
+    "scene_count": 4,
+    "shared_view_count": 8
+  },
+  "scenes": [
+    {
+      "camera_diameter_m": 13.562346181167511,
+      "comparisons_to_common_only": {
+        "distractor_context": {
+          "camera_center_shift_fraction_of_camera_diameter": 0.006216044769115466,
+          "camera_rotation_shift_deg": 0.2195440732858276,
+          "depth_symmetric_relative_shift": 0.012820546417340057,
+          "focal_symmetric_relative_shift": 0.0032716121058911085,
+          "material_change": false,
+          "pairwise_scale_to_common": 1.6538170483693067,
+          "point_shift_fraction_of_camera_diameter": {
+            "all_shared": {
+              "median": 0.006701674054106663,
+              "p90": 0.02531669444206113
+            },
+            "connector": {
+              "median": 0.00435717490282906,
+              "p90": 0.01386550632915775
+            },
+            "core": {
+              "median": 0.00617664384502263,
+              "p90": 0.030538693750996403
+            },
+            "extension": {
+              "median": 0.009193032946444149,
+              "p90": 0.01995786215897164
+            }
+          }
+        },
+        "redundant_context": {
+          "camera_center_shift_fraction_of_camera_diameter": 0.004944161741468819,
+          "camera_rotation_shift_deg": 0.07874542521962463,
+          "depth_symmetric_relative_shift": 0.008798733144614464,
+          "focal_symmetric_relative_shift": 0.002928919857367873,
+          "material_change": false,
+          "pairwise_scale_to_common": 1.053357800991048,
+          "point_shift_fraction_of_camera_diameter": {
+            "all_shared": {
+              "median": 0.004630944763798235,
+              "p90": 0.0168573694649958
+            },
+            "connector": {
+              "median": 0.0026326024632469616,
+              "p90": 0.00898423534355703
+            },
+            "core": {
+              "median": 0.003568042872439276,
+              "p90": 0.02401429340697799
+            },
+            "extension": {
+              "median": 0.006902515276924644,
+              "p90": 0.009863727607321356
+            }
+          }
+        },
+        "repeat_floor": {
+          "camera_center_shift_fraction_of_camera_diameter": 1.8770462547061019e-16,
+          "camera_rotation_shift_deg": 0.009059714281111707,
+          "depth_symmetric_relative_shift": 2.0332631722938197e-16,
+          "focal_symmetric_relative_shift": 0.0,
+          "material_change": false,
+          "pairwise_scale_to_common": 1.0000000000000002,
+          "point_shift_fraction_of_camera_diameter": {
+            "all_shared": {
+              "median": 2.9205793602798065e-16,
+              "p90": 6.840464665797705e-16
+            },
+            "connector": {
+              "median": 2.388897557907236e-16,
+              "p90": 4.3436239943804673e-16
+            },
+            "core": {
+              "median": 2.455967362756546e-16,
+              "p90": 7.520541604243741e-16
+            },
+            "extension": {
+              "median": 4.1242445109358736e-16,
+              "p90": 6.549246300684122e-16
+            }
+          }
+        }
+      },
+      "condition_accuracy": {
+        "common_only_a": {
+          "camera_center_error_m": 0.23391608243880802,
+          "camera_rotation_error_deg": 0.4021335540013377,
+          "point_error_m": {
+            "all_shared": {
+              "median": 0.2286782450214116,
+              "p90": 0.9517508549763893
+            },
+            "connector": {
+              "median": 0.15787341086293952,
+              "p90": 0.7542669827120387
+            },
+            "core": {
+              "median": 0.1956847577780379,
+              "p90": 1.1351217635484827
+            },
+            "extension": {
+              "median": 0.2759253612737499,
+              "p90": 0.5668154955501651
+            }
+          }
+        },
+        "common_only_b": {
+          "camera_center_error_m": 0.23391608243880802,
+          "camera_rotation_error_deg": 0.4021335540013377,
+          "point_error_m": {
+            "all_shared": {
+              "median": 0.2286782450214116,
+              "p90": 0.9517508549763893
+            },
+            "connector": {
+              "median": 0.15787341086293952,
+              "p90": 0.7542669827120387
+            },
+            "core": {
+              "median": 0.1956847577780379,
+              "p90": 1.1351217635484827
+            },
+            "extension": {
+              "median": 0.2759253612737499,
+              "p90": 0.5668154955501651
+            }
+          }
+        },
+        "distractor_context": {
+          "camera_center_error_m": 0.2893769306264834,
+          "camera_rotation_error_deg": 0.5877444718336186,
+          "point_error_m": {
+            "all_shared": {
+              "median": 0.27466269474468064,
+              "p90": 1.0275756912124663
+            },
+            "connector": {
+              "median": 0.1930657390526456,
+              "p90": 0.8249910388900986
+            },
+            "core": {
+              "median": 0.23136303739246816,
+              "p90": 1.2429173843892827
+            },
+            "extension": {
+              "median": 0.37238641389487803,
+              "p90": 0.7401769296710236
+            }
+          }
+        },
+        "redundant_context": {
+          "camera_center_error_m": 0.16169367466291923,
+          "camera_rotation_error_deg": 0.36111198157004365,
+          "point_error_m": {
+            "all_shared": {
+              "median": 0.18729582329891703,
+              "p90": 0.8610353527551886
+            },
+            "connector": {
+              "median": 0.13407858881558823,
+              "p90": 0.717128732894147
+            },
+            "core": {
+              "median": 0.17471565885815782,
+              "p90": 1.0312663324370273
+            },
+            "extension": {
+              "median": 0.20845335468605586,
+              "p90": 0.5488225379314853
+            }
+          }
+        }
+      },
+      "distractor_minus_redundant_relative_error_effect": 0.38205152150605,
+      "point_error_relative_change": {
+        "distractor_context": 0.20108799470174096,
+        "redundant_context": -0.18096352680430902
+      },
+      "scene": "gascola_P003",
+      "score_control": {
+        "distractor_count": 4,
+        "distractor_rejected_count": 4,
+        "shared_retained_count": 8,
+        "shared_view_count": 8
+      }
+    },
+    {
+      "camera_diameter_m": 16.89016003696124,
+      "comparisons_to_common_only": {
+        "distractor_context": {
+          "camera_center_shift_fraction_of_camera_diameter": 0.005299235797739631,
+          "camera_rotation_shift_deg": 0.1284531818156496,
+          "depth_symmetric_relative_shift": 0.019418975669872378,
+          "focal_symmetric_relative_shift": 0.00412507657893002,
+          "material_change": true,
+          "pairwise_scale_to_common": 1.1461096039572234,
+          "point_shift_fraction_of_camera_diameter": {
+            "all_shared": {
+              "median": 0.01395611027183497,
+              "p90": 0.0498410911743598
+            },
+            "connector": {
+              "median": 0.016778808862336337,
+              "p90": 0.05970076075508339
+            },
+            "core": {
+              "median": 0.008023377059183422,
+              "p90": 0.042318934004743375
+            },
+            "extension": {
+              "median": 0.02596524385082566,
+              "p90": 0.06569477795104056
+            }
+          }
+        },
+        "redundant_context": {
+          "camera_center_shift_fraction_of_camera_diameter": 0.003320714173894828,
+          "camera_rotation_shift_deg": 0.06322564611849332,
+          "depth_symmetric_relative_shift": 0.008100068320216543,
+          "focal_symmetric_relative_shift": 0.0024700864451006055,
+          "material_change": false,
+          "pairwise_scale_to_common": 0.9753709794578426,
+          "point_shift_fraction_of_camera_diameter": {
+            "all_shared": {
+              "median": 0.0072114483036554225,
+              "p90": 0.03232639237992885
+            },
+            "connector": {
+              "median": 0.009668434149161293,
+              "p90": 0.05106101999072163
+            },
+            "core": {
+              "median": 0.0036070045359394304,
+              "p90": 0.025806816576675197
+            },
+            "extension": {
+              "median": 0.011189627033666395,
+              "p90": 0.035431404156286685
+            }
+          }
+        },
+        "repeat_floor": {
+          "camera_center_shift_fraction_of_camera_diameter": 4.868535956259775e-16,
+          "camera_rotation_shift_deg": 0.0,
+          "depth_symmetric_relative_shift": 8.838206139663346e-16,
+          "focal_symmetric_relative_shift": 0.0,
+          "material_change": false,
+          "pairwise_scale_to_common": 1.0000000000000009,
+          "point_shift_fraction_of_camera_diameter": {
+            "all_shared": {
+              "median": 9.04183357383694e-16,
+              "p90": 1.85267147863902e-15
+            },
+            "connector": {
+              "median": 1.0690031854306088e-15,
+              "p90": 2.123607171015324e-15
+            },
+            "core": {
+              "median": 4.4147857754899525e-16,
+              "p90": 1.4671472073350745e-15
+            },
+            "extension": {
+              "median": 1.3165418897802044e-15,
+              "p90": 2.575764319032208e-15
+            }
+          }
+        }
+      },
+      "condition_accuracy": {
+        "common_only_a": {
+          "camera_center_error_m": 0.20749017276451687,
+          "camera_rotation_error_deg": 0.31741230642730534,
+          "point_error_m": {
+            "all_shared": {
+              "median": 0.4966392261657102,
+              "p90": 2.8847396091814335
+            },
+            "connector": {
+              "median": 0.8882055324024725,
+              "p90": 4.493569960843043
+            },
+            "core": {
+              "median": 0.2496934152302942,
+              "p90": 1.9226038870423159
+            },
+            "extension": {
+              "median": 1.043714272409964,
+              "p90": 4.004617477531039
+            }
+          }
+        },
+        "common_only_b": {
+          "camera_center_error_m": 0.20749017276451687,
+          "camera_rotation_error_deg": 0.31741230642730534,
+          "point_error_m": {
+            "all_shared": {
+              "median": 0.4966392261657102,
+              "p90": 2.8847396091814335
+            },
+            "connector": {
+              "median": 0.8882055324024725,
+              "p90": 4.493569960843043
+            },
+            "core": {
+              "median": 0.2496934152302942,
+              "p90": 1.9226038870423159
+            },
+            "extension": {
+              "median": 1.043714272409964,
+              "p90": 4.004617477531039
+            }
+          }
+        },
+        "distractor_context": {
+          "camera_center_error_m": 0.15943070932754783,
+          "camera_rotation_error_deg": 0.4357517352952251,
+          "point_error_m": {
+            "all_shared": {
+              "median": 0.638596354706041,
+              "p90": 3.1446330195397554
+            },
+            "connector": {
+              "median": 0.9096950141373881,
+              "p90": 4.539662855332736
+            },
+            "core": {
+              "median": 0.31310055166164974,
+              "p90": 2.1952245410762825
+            },
+            "extension": {
+              "median": 1.3410228330839482,
+              "p90": 4.197743891688933
+            }
+          }
+        },
+        "redundant_context": {
+          "camera_center_error_m": 0.14605587193840275,
+          "camera_rotation_error_deg": 0.19169700161972553,
+          "point_error_m": {
+            "all_shared": {
+              "median": 0.48738453866939535,
+              "p90": 2.9150678447320013
+            },
+            "connector": {
+              "median": 0.8453242037850769,
+              "p90": 4.325907685183889
+            },
+            "core": {
+              "median": 0.24985598106904416,
+              "p90": 1.850874376546993
+            },
+            "extension": {
+              "median": 1.0275689360687994,
+              "p90": 4.141482309042434
+            }
+          }
+        }
+      },
+      "distractor_minus_redundant_relative_error_effect": 0.30447014265077776,
+      "point_error_relative_change": {
+        "distractor_context": 0.28583551411415287,
+        "redundant_context": -0.018634628536624922
+      },
+      "scene": "gascola_P005",
+      "score_control": {
+        "distractor_count": 4,
+        "distractor_rejected_count": 4,
+        "shared_retained_count": 8,
+        "shared_view_count": 8
+      }
+    },
+    {
+      "camera_diameter_m": 4.250840961643115,
+      "comparisons_to_common_only": {
+        "distractor_context": {
+          "camera_center_shift_fraction_of_camera_diameter": 0.00337109765744266,
+          "camera_rotation_shift_deg": 0.26709397254429035,
+          "depth_symmetric_relative_shift": 0.012841179198006918,
+          "focal_symmetric_relative_shift": 0.004205818520858884,
+          "material_change": false,
+          "pairwise_scale_to_common": 1.5059247072271709,
+          "point_shift_fraction_of_camera_diameter": {
+            "all_shared": {
+              "median": 0.002441922431113034,
+              "p90": 0.009666165637088879
+            },
+            "connector": {
+              "median": 0.003603614429851989,
+              "p90": 0.011407265127057689
+            },
+            "core": {
+              "median": 0.0016214626540653947,
+              "p90": 0.006516367968613957
+            },
+            "extension": {
+              "median": 0.00570539957374596,
+              "p90": 0.012635911654948642
+            }
+          }
+        },
+        "redundant_context": {
+          "camera_center_shift_fraction_of_camera_diameter": 0.0005511032162186934,
+          "camera_rotation_shift_deg": 0.05169016070880247,
+          "depth_symmetric_relative_shift": 0.0012045201288119402,
+          "focal_symmetric_relative_shift": 0.0013141391682438552,
+          "material_change": false,
+          "pairwise_scale_to_common": 0.9290325561353863,
+          "point_shift_fraction_of_camera_diameter": {
+            "all_shared": {
+              "median": 0.0006716224278863291,
+              "p90": 0.0030151244802763865
+            },
+            "connector": {
+              "median": 0.0012042213895030215,
+              "p90": 0.0029198900063940724
+            },
+            "core": {
+              "median": 0.00041366803621329637,
+              "p90": 0.001430865360530527
+            },
+            "extension": {
+              "median": 0.0023261702478154984,
+              "p90": 0.0041596667170372675
+            }
+          }
+        },
+        "repeat_floor": {
+          "camera_center_shift_fraction_of_camera_diameter": 1.1440092135090197e-16,
+          "camera_rotation_shift_deg": 0.0028291171798011812,
+          "depth_symmetric_relative_shift": 3.5724109023174383e-16,
+          "focal_symmetric_relative_shift": 0.0,
+          "material_change": false,
+          "pairwise_scale_to_common": 0.9999999999999997,
+          "point_shift_fraction_of_camera_diameter": {
+            "all_shared": {
+              "median": 1.367075143220641e-16,
+              "p90": 3.4100845386043695e-16
+            },
+            "connector": {
+              "median": 1.7201984986483145e-16,
+              "p90": 4.176483549667455e-16
+            },
+            "core": {
+              "median": 9.850706713712284e-17,
+              "p90": 2.734150286441282e-16
+            },
+            "extension": {
+              "median": 2.9707465205922526e-16,
+              "p90": 4.176483549667455e-16
+            }
+          }
+        }
+      },
+      "condition_accuracy": {
+        "common_only_a": {
+          "camera_center_error_m": 0.019686750437697617,
+          "camera_rotation_error_deg": 0.0788122829346029,
+          "point_error_m": {
+            "all_shared": {
+              "median": 0.012294295660007394,
+              "p90": 0.04327606433329643
+            },
+            "connector": {
+              "median": 0.024395958303966535,
+              "p90": 0.10110623906677328
+            },
+            "core": {
+              "median": 0.008035499757183973,
+              "p90": 0.025324374509497736
+            },
+            "extension": {
+              "median": 0.026279636304743392,
+              "p90": 0.06299122684785882
+            }
+          }
+        },
+        "common_only_b": {
+          "camera_center_error_m": 0.019686750437697617,
+          "camera_rotation_error_deg": 0.0788122829346029,
+          "point_error_m": {
+            "all_shared": {
+              "median": 0.012294295660007394,
+              "p90": 0.04327606433329643
+            },
+            "connector": {
+              "median": 0.024395958303966535,
+              "p90": 0.10110623906677328
+            },
+            "core": {
+              "median": 0.008035499757183973,
+              "p90": 0.025324374509497736
+            },
+            "extension": {
+              "median": 0.026279636304743392,
+              "p90": 0.06299122684785882
+            }
+          }
+        },
+        "distractor_context": {
+          "camera_center_error_m": 0.019381200283158758,
+          "camera_rotation_error_deg": 0.2648894439952721,
+          "point_error_m": {
+            "all_shared": {
+              "median": 0.016967087742329925,
+              "p90": 0.0551315943255278
+            },
+            "connector": {
+              "median": 0.024438820197682384,
+              "p90": 0.10231785024956612
+            },
+            "core": {
+              "median": 0.012027629402848222,
+              "p90": 0.03630312167583369
+            },
+            "extension": {
+              "median": 0.030339384551001408,
+              "p90": 0.0765627982367083
+            }
+          }
+        },
+        "redundant_context": {
+          "camera_center_error_m": 0.018010097540131186,
+          "camera_rotation_error_deg": 0.10599480879029533,
+          "point_error_m": {
+            "all_shared": {
+              "median": 0.011542734569641592,
+              "p90": 0.042362490761696285
+            },
+            "connector": {
+              "median": 0.020270440452451362,
+              "p90": 0.09863436253101691
+            },
+            "core": {
+              "median": 0.007748561130319187,
+              "p90": 0.024008050939023112
+            },
+            "extension": {
+              "median": 0.021149048640386532,
+              "p90": 0.06504664869043102
+            }
+          }
+        }
+      },
+      "distractor_minus_redundant_relative_error_effect": 0.441208941341262,
+      "point_error_relative_change": {
+        "distractor_context": 0.3800780631559759,
+        "redundant_context": -0.06113087818528604
+      },
+      "scene": "hospital_P000",
+      "score_control": {
+        "distractor_count": 4,
+        "distractor_rejected_count": 4,
+        "shared_retained_count": 8,
+        "shared_view_count": 8
+      }
+    },
+    {
+      "camera_diameter_m": 8.562473400489521,
+      "comparisons_to_common_only": {
+        "distractor_context": {
+          "camera_center_shift_fraction_of_camera_diameter": 0.0017205766726668993,
+          "camera_rotation_shift_deg": 0.11209376949703531,
+          "depth_symmetric_relative_shift": 0.0061326445617370245,
+          "focal_symmetric_relative_shift": 0.002014887402765453,
+          "material_change": false,
+          "pairwise_scale_to_common": 1.234220423054862,
+          "point_shift_fraction_of_camera_diameter": {
+            "all_shared": {
+              "median": 0.0017952620707248506,
+              "p90": 0.006560105893114386
+            },
+            "connector": {
+              "median": 0.0024349937667755227,
+              "p90": 0.005600141595686223
+            },
+            "core": {
+              "median": 0.0010450307639182923,
+              "p90": 0.003343502007192345
+            },
+            "extension": {
+              "median": 0.005520610602403612,
+              "p90": 0.008988505156744632
+            }
+          }
+        },
+        "redundant_context": {
+          "camera_center_shift_fraction_of_camera_diameter": 0.001031565576476712,
+          "camera_rotation_shift_deg": 0.05971403339013615,
+          "depth_symmetric_relative_shift": 0.0021299401902221213,
+          "focal_symmetric_relative_shift": 0.0020857651834376156,
+          "material_change": false,
+          "pairwise_scale_to_common": 0.9490883243378846,
+          "point_shift_fraction_of_camera_diameter": {
+            "all_shared": {
+              "median": 0.0004799739754526861,
+              "p90": 0.001960997632254672
+            },
+            "connector": {
+              "median": 0.00048226022379730266,
+              "p90": 0.001267333310909093
+            },
+            "core": {
+              "median": 0.0003408862036432223,
+              "p90": 0.0018697647061026172
+            },
+            "extension": {
+              "median": 0.0011219511927278763,
+              "p90": 0.002300794197271777
+            }
+          }
+        },
+        "repeat_floor": {
+          "camera_center_shift_fraction_of_camera_diameter": 9.083524285826446e-16,
+          "camera_rotation_shift_deg": 0.0,
+          "depth_symmetric_relative_shift": 4.3504480645716857e-16,
+          "focal_symmetric_relative_shift": 0.0,
+          "material_change": false,
+          "pairwise_scale_to_common": 1.0000000000000004,
+          "point_shift_fraction_of_camera_diameter": {
+            "all_shared": {
+              "median": 4.910686501435466e-16,
+              "p90": 1.2736709798161476e-15
+            },
+            "connector": {
+              "median": 6.082688249034942e-16,
+              "p90": 8.233239487422832e-16
+            },
+            "core": {
+              "median": 3.71778449962406e-16,
+              "p90": 9.85429793333557e-16
+            },
+            "extension": {
+              "median": 9.79935878575586e-16,
+              "p90": 1.3789996396617516e-15
+            }
+          }
+        }
+      },
+      "condition_accuracy": {
+        "common_only_a": {
+          "camera_center_error_m": 0.0501462462998348,
+          "camera_rotation_error_deg": 0.2434178672082673,
+          "point_error_m": {
+            "all_shared": {
+              "median": 0.02529427106111606,
+              "p90": 0.08771789472936406
+            },
+            "connector": {
+              "median": 0.02759369321462083,
+              "p90": 0.07049610360503926
+            },
+            "core": {
+              "median": 0.01602840006953972,
+              "p90": 0.06846922364182811
+            },
+            "extension": {
+              "median": 0.053830684447149786,
+              "p90": 0.12073315738062737
+            }
+          }
+        },
+        "common_only_b": {
+          "camera_center_error_m": 0.0501462462998348,
+          "camera_rotation_error_deg": 0.2434178672082673,
+          "point_error_m": {
+            "all_shared": {
+              "median": 0.02529427106111606,
+              "p90": 0.08771789472936406
+            },
+            "connector": {
+              "median": 0.02759369321462083,
+              "p90": 0.07049610360503926
+            },
+            "core": {
+              "median": 0.01602840006953972,
+              "p90": 0.06846922364182811
+            },
+            "extension": {
+              "median": 0.053830684447149786,
+              "p90": 0.12073315738062737
+            }
+          }
+        },
+        "distractor_context": {
+          "camera_center_error_m": 0.045992353185329765,
+          "camera_rotation_error_deg": 0.22216810323653288,
+          "point_error_m": {
+            "all_shared": {
+              "median": 0.03127259748378637,
+              "p90": 0.09833111057536655
+            },
+            "connector": {
+              "median": 0.0390128708456058,
+              "p90": 0.07856395789050602
+            },
+            "core": {
+              "median": 0.017286097706229145,
+              "p90": 0.07534714293682625
+            },
+            "extension": {
+              "median": 0.0668254501890488,
+              "p90": 0.13414431071609864
+            }
+          }
+        },
+        "redundant_context": {
+          "camera_center_error_m": 0.04267369097183556,
+          "camera_rotation_error_deg": 0.22527559579114248,
+          "point_error_m": {
+            "all_shared": {
+              "median": 0.0253925984435454,
+              "p90": 0.09006444850421559
+            },
+            "connector": {
+              "median": 0.028429987408623143,
+              "p90": 0.07406794238258657
+            },
+            "core": {
+              "median": 0.015334259467376633,
+              "p90": 0.060279323407405744
+            },
+            "extension": {
+              "median": 0.05856657318454438,
+              "p90": 0.12645786313260352
+            }
+          }
+        }
+      },
+      "distractor_minus_redundant_relative_error_effect": 0.23246366839485935,
+      "point_error_relative_change": {
+        "distractor_context": 0.2363510064482771,
+        "redundant_context": 0.003887338053417773
+      },
+      "scene": "hospital_P003",
+      "score_control": {
+        "distractor_count": 4,
+        "distractor_rejected_count": 4,
+        "shared_retained_count": 8,
+        "shared_view_count": 8
+      }
+    }
+  ],
+  "schema_version": 1,
+  "status": "complete",
+  "summary": {
+    "distractor_accuracy_worsened_scene_count": 4,
+    "distractor_extension_shift_exceeds_core_scene_count": 4,
+    "distractor_material_change_scene_count": 1,
+    "distractor_point_error_relative_change": {
+      "median": 0.261093260281215,
+      "per_scene": [
+        0.20108799470174096,
+        0.28583551411415287,
+        0.3800780631559759,
+        0.2363510064482771
+      ]
+    },
+    "distractor_shift_exceeds_redundant_scene_count": 4,
+    "median_distractor_extension_to_core_shift_ratio": 3.3774367762787154,
+    "median_distractor_minus_redundant_relative_error_effect": 0.34326083207841385,
+    "median_distractor_to_redundant_point_shift_ratio": 2.78556374052038,
+    "redundant_accuracy_worsened_scene_count": 1,
+    "redundant_material_change_scene_count": 0,
+    "redundant_point_error_relative_change": {
+      "median": -0.03988275336095548,
+      "per_scene": [
+        -0.18096352680430902,
+        -0.018634628536624922,
+        -0.06113087818528604,
+        0.003887338053417773
+      ]
+    },
+    "scene_count": 4,
+    "score_control_passed_scene_count": 4
+  }
+}

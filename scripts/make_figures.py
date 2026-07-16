@@ -17,6 +17,7 @@ os.environ.setdefault("MPLCONFIGDIR", str(ROOT / ".mplconfig"))
 os.environ.setdefault("MPLBACKEND", "Agg")
 
 import matplotlib.pyplot as plt  # noqa: E402
+import numpy as np  # noqa: E402
 from matplotlib.patches import FancyArrowPatch, FancyBboxPatch  # noqa: E402
 
 
@@ -52,6 +53,12 @@ def load_summary() -> dict:
     return json.loads((DATA / "t36_sequence_summary.json").read_text())
 
 
+def load_set_filter_results() -> tuple[dict, dict]:
+    geometry = json.loads((DATA / "set_relative_filter_geometry.json").read_text())
+    cascade = json.loads((DATA / "iterative_filter_cascade.json").read_text())
+    return geometry, cascade
+
+
 def validate(rows: list[dict], summary: dict) -> None:
     assert [row["K"] for row in rows] == [8, 12, 16, 20, 24, 32, 48, 64]
     by_k = {row["K"]: row for row in rows}
@@ -80,6 +87,20 @@ def validate(rows: list[dict], summary: dict) -> None:
         "a1_external_tracker": 0.575,
         "a2_vggt_track_head": 0.875,
     }
+
+
+def validate_set_filter_results(geometry: dict, cascade: dict) -> None:
+    assert geometry["status"] == "complete"
+    assert geometry["scene_count"] == 4
+    assert geometry["aggregate"]["exact_extension_reversal_scene_count"] == 4
+    assert geometry["aggregate"]["normalization_only_reversal_scene_count"] == 4
+    assert geometry["aggregate"]["all_valid_geometry_harmed_scene_count"] == 4
+    assert math.isclose(geometry["aggregate"]["mean_filtering_effect_differential"], 0.12626516878605087)
+    assert cascade["status"] == "complete"
+    assert cascade["chain_count"] == 8
+    assert cascade["aggregate"]["non_idempotent_chain_count"] == 8
+    assert cascade["aggregate"]["connector_eventually_rejected_chain_count"] == 8
+    assert cascade["aggregate"]["final_survivor_count_range"] == [2, 3]
 
 
 def style() -> None:
@@ -373,6 +394,169 @@ def plot_constraint_matched_test() -> None:
     plt.close(fig)
 
 
+def plot_set_relative_filter_geometry(geometry: dict) -> None:
+    rows = geometry["rows"]
+    labels = [row["scene"].replace("_", " ") for row in rows]
+    fig, axes = plt.subplots(1, 3, figsize=(18, 5))
+
+    roles = ("connector", "extension_center", "extension")
+    markers = {"connector": "o", "extension_center": "s", "extension": "^"}
+    x = np.arange(len(rows), dtype=float)
+    for role in roles:
+        with_distractors = []
+        all_valid = []
+        for row in rows:
+            shared = next(item for item in row["shared_source_views"] if item["role"] == role)
+            with_distractors.append(shared["score_with_distractors"])
+            all_valid.append(shared["score_all_valid"])
+        axes[0].scatter(x - 0.08, with_distractors, marker=markers[role], label=f"{role}: distractors")
+        axes[0].scatter(
+            x + 0.08,
+            all_valid,
+            marker=markers[role],
+            facecolors="none",
+            label=f"{role}: all valid",
+        )
+        for index in range(len(rows)):
+            axes[0].plot(
+                [x[index] - 0.08, x[index] + 0.08],
+                [with_distractors[index], all_valid[index]],
+                color="0.75",
+            )
+    axes[0].axhline(0.4, color="black", linestyle="--", linewidth=1)
+    axes[0].set_xticks(x, labels, rotation=25, ha="right")
+    axes[0].set_ylim(-0.02, 1.02)
+    axes[0].set_ylabel("View score")
+    axes[0].set_title("Removing distractors rejects valid frontier views")
+    axes[0].legend(fontsize=7, ncol=2, frameon=False)
+
+    observed_extension = []
+    same_forward_valid_only = []
+    actual_all_valid = []
+    for row in rows:
+        counterfactual = [
+            item
+            for item in row["same_forward_counterfactual"]
+            if item["role"] in {"extension_center", "extension"}
+        ]
+        shared = [
+            item
+            for item in row["shared_source_views"]
+            if item["role"] in {"extension_center", "extension"}
+        ]
+        observed_extension.append(
+            float(np.mean([item["observed_score_with_distractors"] for item in counterfactual]))
+        )
+        same_forward_valid_only.append(
+            float(np.mean([item["valid_only_score_same_forward"] for item in counterfactual]))
+        )
+        actual_all_valid.append(float(np.mean([item["score_all_valid"] for item in shared])))
+    width = 0.25
+    axes[1].bar(x - width, observed_extension, width, label="observed with distractors")
+    axes[1].bar(x, same_forward_valid_only, width, label="same raw scores, valid-only min-max")
+    axes[1].bar(x + width, actual_all_valid, width, label="actual all-valid forward")
+    axes[1].axhline(0.4, color="black", linestyle="--", linewidth=1)
+    axes[1].set_xticks(x, labels, rotation=25, ha="right")
+    axes[1].set_ylim(0.0, 0.75)
+    axes[1].set_ylabel("Mean extension score")
+    axes[1].set_title("Min-max calibration alone is sufficient")
+    axes[1].legend(fontsize=7, frameon=False)
+
+    distractor_delta = [
+        row["geometry"]["base_anchor_reference"]["filtering_delta"] for row in rows
+    ]
+    all_valid_delta = [row["geometry"]["all_valid"]["filtering_delta"] for row in rows]
+    axes[2].bar(x - 0.18, distractor_delta, 0.36, label="filter distractor set")
+    axes[2].bar(x + 0.18, all_valid_delta, 0.36, label="filter all-valid set")
+    axes[2].axhline(0.0, color="black", linewidth=1)
+    axes[2].set_xticks(x, labels, rotation=25, ha="right")
+    axes[2].set_ylabel("Held-out completeness change")
+    axes[2].set_title("Filtering clean sets is consistently more harmful")
+    axes[2].legend(fontsize=8, frameon=False)
+
+    fig.tight_layout()
+    fig.savefig(FIGURES / "set_relative_filter_geometry.png", bbox_inches="tight")
+    plt.close(fig)
+
+
+def plot_iterative_filter_cascade(cascade: dict) -> None:
+    chains = cascade["chains"]
+    fig, axes = plt.subplots(1, 3, figsize=(18, 5))
+    colors = {
+        "gascola_P003": "#1f77b4",
+        "gascola_P005": "#17becf",
+        "hospital_P000": "#ff7f0e",
+        "hospital_P003": "#d62728",
+    }
+    for row in chains:
+        x = [item["round"] for item in row["rounds"]]
+        y = [item["input_count"] for item in row["rounds"]]
+        y.append(row["rounds"][-1]["survivor_count"])
+        x.append(x[-1] + 1)
+        linestyle = "-" if row["condition"] == "base_anchor_reference" else "--"
+        condition = "distractors" if linestyle == "-" else "all valid"
+        label = f"{row['scene'].replace('_', ' ')} / {condition}"
+        axes[0].step(
+            x,
+            y,
+            where="post",
+            color=colors[row["scene"]],
+            linestyle=linestyle,
+            marker="o",
+            label=label,
+        )
+    axes[0].set_xlabel("Filter application")
+    axes[0].set_ylabel("Remaining views")
+    axes[0].set_ylim(0, 13)
+    axes[0].set_title("Repeated filtering does not stop after cleanup")
+    axes[0].legend(fontsize=7, ncol=2, frameon=False)
+
+    categories = ("distractor", "extension", "connector", "core / redundant")
+    category_colors = ("#d62728", "#2ca02c", "#ff7f0e", "#6baed6")
+    max_round = max(max(item["round"] for item in row["rounds"]) for row in chains)
+    counts = np.zeros((len(categories), max_round + 1), dtype=np.int64)
+    for row in chains:
+        for item in row["rounds"]:
+            for role in item["rejected_roles"]:
+                if role == "distractor":
+                    category = 0
+                elif role in {"extension_center", "extension"}:
+                    category = 1
+                elif role == "connector":
+                    category = 2
+                else:
+                    category = 3
+                counts[category, item["round"]] += 1
+    bottom = np.zeros(max_round + 1, dtype=np.int64)
+    for category, color, values in zip(categories, category_colors, counts):
+        axes[1].bar(range(max_round + 1), values, bottom=bottom, label=category, color=color)
+        bottom += values
+    axes[1].set_xlabel("Filter application")
+    axes[1].set_ylabel("Views newly rejected across eight chains")
+    axes[1].set_title("The identity of the outlier moves inward")
+    axes[1].legend(fontsize=8, frameon=False)
+
+    labels = [
+        f"{row['scene'].replace('_', ' ')}\n"
+        f"{'distractors' if row['condition'] == 'base_anchor_reference' else 'all valid'}"
+        for row in chains
+    ]
+    final_count = [row["final_survivor_count"] for row in chains]
+    starting_valid = [8 if row["condition"] == "base_anchor_reference" else 12 for row in chains]
+    x = np.arange(len(chains))
+    axes[2].bar(x, starting_valid, color="0.85", label="valid views at start")
+    axes[2].bar(x, final_count, color="#4c78a8", label="fixed-point survivors")
+    axes[2].set_xticks(x, labels, rotation=45, ha="right", fontsize=7)
+    axes[2].set_ylabel("View count")
+    axes[2].set_ylim(0, 13)
+    axes[2].set_title("The fixed point retains only 2–3 views")
+    axes[2].legend(fontsize=8, frameon=False)
+
+    fig.tight_layout()
+    fig.savefig(FIGURES / "iterative_filter_cascade.png", bbox_inches="tight")
+    plt.close(fig)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--check", action="store_true", help="validate data and generated files")
@@ -382,7 +566,9 @@ def main() -> None:
     validate_checksums()
     rows = load_csv()
     summary = load_summary()
+    set_filter_geometry, iterative_filter = load_set_filter_results()
     validate(rows, summary)
+    validate_set_filter_results(set_filter_geometry, iterative_filter)
     style()
     plot_experiment_design()
     plot_dvlt(rows)
@@ -390,6 +576,8 @@ def main() -> None:
     plot_correspondence_diagnostics(summary)
     plot_constraint_output_hypothesis()
     plot_constraint_matched_test()
+    plot_set_relative_filter_geometry(set_filter_geometry)
+    plot_iterative_filter_cascade(iterative_filter)
 
     if args.check:
         for name in (
@@ -399,6 +587,8 @@ def main() -> None:
             "correspondence_diagnostics.png",
             "constraint_output_hypothesis.png",
             "constraint_matched_test.png",
+            "set_relative_filter_geometry.png",
+            "iterative_filter_cascade.png",
         ):
             path = FIGURES / name
             assert path.exists() and path.stat().st_size > 10_000, path

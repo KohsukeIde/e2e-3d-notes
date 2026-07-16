@@ -1,0 +1,789 @@
+{
+  "aggregate": {
+    "all_valid_round_zero_extension_rejection_scene_count": 4,
+    "base_round_one_extension_rejection_scene_count": 4,
+    "connector_eventually_rejected_chain_count": 8,
+    "extension_roles_eventually_rejected_chain_count": 8,
+    "final_survivor_count_range": [
+      2,
+      3
+    ],
+    "maximum_completed_rounds": 7,
+    "mean_final_survivor_count": 2.125,
+    "mean_final_valid_retention": 0.21875,
+    "minimum_completed_rounds": 5,
+    "non_idempotent_chain_count": 8
+  },
+  "chain_count": 8,
+  "chains": [
+    {
+      "completed_rounds_including_stability_check": 5,
+      "condition": "base_anchor_reference",
+      "connector_eventually_rejected": true,
+      "environment": "gascola",
+      "extension_roles_eventually_rejected": true,
+      "final_survivor_count": 2,
+      "final_survivor_roles": [
+        "anchor",
+        "redundant_core"
+      ],
+      "final_valid_retention": 0.25,
+      "non_idempotent_after_first_application": true,
+      "rounds": [
+        {
+          "input_count": 12,
+          "rejected_count": 4,
+          "rejected_labels": [
+            "distractor",
+            "distractor",
+            "distractor",
+            "distractor"
+          ],
+          "rejected_roles": [
+            "distractor",
+            "distractor",
+            "distractor",
+            "distractor"
+          ],
+          "round": 0,
+          "stable": false,
+          "survivor_count": 8
+        },
+        {
+          "input_count": 8,
+          "rejected_count": 2,
+          "rejected_labels": [
+            "bridge",
+            "bridge"
+          ],
+          "rejected_roles": [
+            "extension_center",
+            "extension"
+          ],
+          "round": 1,
+          "stable": false,
+          "survivor_count": 6
+        },
+        {
+          "input_count": 6,
+          "rejected_count": 2,
+          "rejected_labels": [
+            "clean",
+            "clean"
+          ],
+          "rejected_roles": [
+            "core",
+            "core"
+          ],
+          "round": 2,
+          "stable": false,
+          "survivor_count": 4
+        },
+        {
+          "input_count": 4,
+          "rejected_count": 2,
+          "rejected_labels": [
+            "clean",
+            "bridge"
+          ],
+          "rejected_roles": [
+            "redundant_core",
+            "connector"
+          ],
+          "round": 3,
+          "stable": false,
+          "survivor_count": 2
+        },
+        {
+          "input_count": 2,
+          "rejected_count": 0,
+          "rejected_labels": [],
+          "rejected_roles": [],
+          "round": 4,
+          "stable": true,
+          "survivor_count": 2
+        }
+      ],
+      "scene": "gascola_P003"
+    },
+    {
+      "completed_rounds_including_stability_check": 5,
+      "condition": "all_valid",
+      "connector_eventually_rejected": true,
+      "environment": "gascola",
+      "extension_roles_eventually_rejected": true,
+      "final_survivor_count": 2,
+      "final_survivor_roles": [
+        "anchor",
+        "redundant_core"
+      ],
+      "final_valid_retention": 0.16666666666666666,
+      "non_idempotent_after_first_application": true,
+      "rounds": [
+        {
+          "input_count": 12,
+          "rejected_count": 2,
+          "rejected_labels": [
+            "bridge",
+            "bridge"
+          ],
+          "rejected_roles": [
+            "extension_center",
+            "extension"
+          ],
+          "round": 0,
+          "stable": false,
+          "survivor_count": 10
+        },
+        {
+          "input_count": 10,
+          "rejected_count": 3,
+          "rejected_labels": [
+            "clean",
+            "clean",
+            "clean"
+          ],
+          "rejected_roles": [
+            "core",
+            "redundant_core",
+            "redundant_core"
+          ],
+          "round": 1,
+          "stable": false,
+          "survivor_count": 7
+        },
+        {
+          "input_count": 7,
+          "rejected_count": 4,
+          "rejected_labels": [
+            "clean",
+            "clean",
+            "bridge",
+            "clean"
+          ],
+          "rejected_roles": [
+            "core",
+            "redundant_core",
+            "connector",
+            "redundant_core"
+          ],
+          "round": 2,
+          "stable": false,
+          "survivor_count": 3
+        },
+        {
+          "input_count": 3,
+          "rejected_count": 1,
+          "rejected_labels": [
+            "clean"
+          ],
+          "rejected_roles": [
+            "redundant_core"
+          ],
+          "round": 3,
+          "stable": false,
+          "survivor_count": 2
+        },
+        {
+          "input_count": 2,
+          "rejected_count": 0,
+          "rejected_labels": [],
+          "rejected_roles": [],
+          "round": 4,
+          "stable": true,
+          "survivor_count": 2
+        }
+      ],
+      "scene": "gascola_P003"
+    },
+    {
+      "completed_rounds_including_stability_check": 5,
+      "condition": "base_anchor_reference",
+      "connector_eventually_rejected": true,
+      "environment": "gascola",
+      "extension_roles_eventually_rejected": true,
+      "final_survivor_count": 2,
+      "final_survivor_roles": [
+        "anchor",
+        "redundant_core"
+      ],
+      "final_valid_retention": 0.25,
+      "non_idempotent_after_first_application": true,
+      "rounds": [
+        {
+          "input_count": 12,
+          "rejected_count": 4,
+          "rejected_labels": [
+            "distractor",
+            "distractor",
+            "distractor",
+            "distractor"
+          ],
+          "rejected_roles": [
+            "distractor",
+            "distractor",
+            "distractor",
+            "distractor"
+          ],
+          "round": 0,
+          "stable": false,
+          "survivor_count": 8
+        },
+        {
+          "input_count": 8,
+          "rejected_count": 2,
+          "rejected_labels": [
+            "bridge",
+            "bridge"
+          ],
+          "rejected_roles": [
+            "extension_center",
+            "extension"
+          ],
+          "round": 1,
+          "stable": false,
+          "survivor_count": 6
+        },
+        {
+          "input_count": 6,
+          "rejected_count": 2,
+          "rejected_labels": [
+            "clean",
+            "bridge"
+          ],
+          "rejected_roles": [
+            "core",
+            "connector"
+          ],
+          "round": 2,
+          "stable": false,
+          "survivor_count": 4
+        },
+        {
+          "input_count": 4,
+          "rejected_count": 2,
+          "rejected_labels": [
+            "clean",
+            "clean"
+          ],
+          "rejected_roles": [
+            "core",
+            "redundant_core"
+          ],
+          "round": 3,
+          "stable": false,
+          "survivor_count": 2
+        },
+        {
+          "input_count": 2,
+          "rejected_count": 0,
+          "rejected_labels": [],
+          "rejected_roles": [],
+          "round": 4,
+          "stable": true,
+          "survivor_count": 2
+        }
+      ],
+      "scene": "gascola_P005"
+    },
+    {
+      "completed_rounds_including_stability_check": 5,
+      "condition": "all_valid",
+      "connector_eventually_rejected": true,
+      "environment": "gascola",
+      "extension_roles_eventually_rejected": true,
+      "final_survivor_count": 3,
+      "final_survivor_roles": [
+        "anchor",
+        "redundant_core",
+        "redundant_core"
+      ],
+      "final_valid_retention": 0.25,
+      "non_idempotent_after_first_application": true,
+      "rounds": [
+        {
+          "input_count": 12,
+          "rejected_count": 2,
+          "rejected_labels": [
+            "bridge",
+            "bridge"
+          ],
+          "rejected_roles": [
+            "extension_center",
+            "extension"
+          ],
+          "round": 0,
+          "stable": false,
+          "survivor_count": 10
+        },
+        {
+          "input_count": 10,
+          "rejected_count": 3,
+          "rejected_labels": [
+            "clean",
+            "bridge",
+            "clean"
+          ],
+          "rejected_roles": [
+            "core",
+            "connector",
+            "redundant_core"
+          ],
+          "round": 1,
+          "stable": false,
+          "survivor_count": 7
+        },
+        {
+          "input_count": 7,
+          "rejected_count": 2,
+          "rejected_labels": [
+            "clean",
+            "clean"
+          ],
+          "rejected_roles": [
+            "redundant_core",
+            "redundant_core"
+          ],
+          "round": 2,
+          "stable": false,
+          "survivor_count": 5
+        },
+        {
+          "input_count": 5,
+          "rejected_count": 2,
+          "rejected_labels": [
+            "clean",
+            "clean"
+          ],
+          "rejected_roles": [
+            "core",
+            "redundant_core"
+          ],
+          "round": 3,
+          "stable": false,
+          "survivor_count": 3
+        },
+        {
+          "input_count": 3,
+          "rejected_count": 0,
+          "rejected_labels": [],
+          "rejected_roles": [],
+          "round": 4,
+          "stable": true,
+          "survivor_count": 3
+        }
+      ],
+      "scene": "gascola_P005"
+    },
+    {
+      "completed_rounds_including_stability_check": 5,
+      "condition": "base_anchor_reference",
+      "connector_eventually_rejected": true,
+      "environment": "hospital",
+      "extension_roles_eventually_rejected": true,
+      "final_survivor_count": 2,
+      "final_survivor_roles": [
+        "anchor",
+        "redundant_core"
+      ],
+      "final_valid_retention": 0.25,
+      "non_idempotent_after_first_application": true,
+      "rounds": [
+        {
+          "input_count": 12,
+          "rejected_count": 4,
+          "rejected_labels": [
+            "distractor",
+            "distractor",
+            "distractor",
+            "distractor"
+          ],
+          "rejected_roles": [
+            "distractor",
+            "distractor",
+            "distractor",
+            "distractor"
+          ],
+          "round": 0,
+          "stable": false,
+          "survivor_count": 8
+        },
+        {
+          "input_count": 8,
+          "rejected_count": 2,
+          "rejected_labels": [
+            "bridge",
+            "bridge"
+          ],
+          "rejected_roles": [
+            "extension_center",
+            "extension"
+          ],
+          "round": 1,
+          "stable": false,
+          "survivor_count": 6
+        },
+        {
+          "input_count": 6,
+          "rejected_count": 1,
+          "rejected_labels": [
+            "bridge"
+          ],
+          "rejected_roles": [
+            "connector"
+          ],
+          "round": 2,
+          "stable": false,
+          "survivor_count": 5
+        },
+        {
+          "input_count": 5,
+          "rejected_count": 3,
+          "rejected_labels": [
+            "clean",
+            "clean",
+            "clean"
+          ],
+          "rejected_roles": [
+            "core",
+            "core",
+            "redundant_core"
+          ],
+          "round": 3,
+          "stable": false,
+          "survivor_count": 2
+        },
+        {
+          "input_count": 2,
+          "rejected_count": 0,
+          "rejected_labels": [],
+          "rejected_roles": [],
+          "round": 4,
+          "stable": true,
+          "survivor_count": 2
+        }
+      ],
+      "scene": "hospital_P000"
+    },
+    {
+      "completed_rounds_including_stability_check": 6,
+      "condition": "all_valid",
+      "connector_eventually_rejected": true,
+      "environment": "hospital",
+      "extension_roles_eventually_rejected": true,
+      "final_survivor_count": 2,
+      "final_survivor_roles": [
+        "anchor",
+        "redundant_core"
+      ],
+      "final_valid_retention": 0.16666666666666666,
+      "non_idempotent_after_first_application": true,
+      "rounds": [
+        {
+          "input_count": 12,
+          "rejected_count": 2,
+          "rejected_labels": [
+            "bridge",
+            "bridge"
+          ],
+          "rejected_roles": [
+            "extension_center",
+            "extension"
+          ],
+          "round": 0,
+          "stable": false,
+          "survivor_count": 10
+        },
+        {
+          "input_count": 10,
+          "rejected_count": 1,
+          "rejected_labels": [
+            "bridge"
+          ],
+          "rejected_roles": [
+            "connector"
+          ],
+          "round": 1,
+          "stable": false,
+          "survivor_count": 9
+        },
+        {
+          "input_count": 9,
+          "rejected_count": 2,
+          "rejected_labels": [
+            "clean",
+            "clean"
+          ],
+          "rejected_roles": [
+            "redundant_core",
+            "redundant_core"
+          ],
+          "round": 2,
+          "stable": false,
+          "survivor_count": 7
+        },
+        {
+          "input_count": 7,
+          "rejected_count": 3,
+          "rejected_labels": [
+            "clean",
+            "clean",
+            "clean"
+          ],
+          "rejected_roles": [
+            "core",
+            "redundant_core",
+            "redundant_core"
+          ],
+          "round": 3,
+          "stable": false,
+          "survivor_count": 4
+        },
+        {
+          "input_count": 4,
+          "rejected_count": 2,
+          "rejected_labels": [
+            "clean",
+            "clean"
+          ],
+          "rejected_roles": [
+            "core",
+            "redundant_core"
+          ],
+          "round": 4,
+          "stable": false,
+          "survivor_count": 2
+        },
+        {
+          "input_count": 2,
+          "rejected_count": 0,
+          "rejected_labels": [],
+          "rejected_roles": [],
+          "round": 5,
+          "stable": true,
+          "survivor_count": 2
+        }
+      ],
+      "scene": "hospital_P000"
+    },
+    {
+      "completed_rounds_including_stability_check": 7,
+      "condition": "base_anchor_reference",
+      "connector_eventually_rejected": true,
+      "environment": "hospital",
+      "extension_roles_eventually_rejected": true,
+      "final_survivor_count": 2,
+      "final_survivor_roles": [
+        "anchor",
+        "core"
+      ],
+      "final_valid_retention": 0.25,
+      "non_idempotent_after_first_application": true,
+      "rounds": [
+        {
+          "input_count": 12,
+          "rejected_count": 4,
+          "rejected_labels": [
+            "distractor",
+            "distractor",
+            "distractor",
+            "distractor"
+          ],
+          "rejected_roles": [
+            "distractor",
+            "distractor",
+            "distractor",
+            "distractor"
+          ],
+          "round": 0,
+          "stable": false,
+          "survivor_count": 8
+        },
+        {
+          "input_count": 8,
+          "rejected_count": 2,
+          "rejected_labels": [
+            "bridge",
+            "bridge"
+          ],
+          "rejected_roles": [
+            "extension_center",
+            "extension"
+          ],
+          "round": 1,
+          "stable": false,
+          "survivor_count": 6
+        },
+        {
+          "input_count": 6,
+          "rejected_count": 1,
+          "rejected_labels": [
+            "bridge"
+          ],
+          "rejected_roles": [
+            "connector"
+          ],
+          "round": 2,
+          "stable": false,
+          "survivor_count": 5
+        },
+        {
+          "input_count": 5,
+          "rejected_count": 1,
+          "rejected_labels": [
+            "clean"
+          ],
+          "rejected_roles": [
+            "core"
+          ],
+          "round": 3,
+          "stable": false,
+          "survivor_count": 4
+        },
+        {
+          "input_count": 4,
+          "rejected_count": 1,
+          "rejected_labels": [
+            "clean"
+          ],
+          "rejected_roles": [
+            "redundant_core"
+          ],
+          "round": 4,
+          "stable": false,
+          "survivor_count": 3
+        },
+        {
+          "input_count": 3,
+          "rejected_count": 1,
+          "rejected_labels": [
+            "clean"
+          ],
+          "rejected_roles": [
+            "redundant_core"
+          ],
+          "round": 5,
+          "stable": false,
+          "survivor_count": 2
+        },
+        {
+          "input_count": 2,
+          "rejected_count": 0,
+          "rejected_labels": [],
+          "rejected_roles": [],
+          "round": 6,
+          "stable": true,
+          "survivor_count": 2
+        }
+      ],
+      "scene": "hospital_P003"
+    },
+    {
+      "completed_rounds_including_stability_check": 6,
+      "condition": "all_valid",
+      "connector_eventually_rejected": true,
+      "environment": "hospital",
+      "extension_roles_eventually_rejected": true,
+      "final_survivor_count": 2,
+      "final_survivor_roles": [
+        "anchor",
+        "core"
+      ],
+      "final_valid_retention": 0.16666666666666666,
+      "non_idempotent_after_first_application": true,
+      "rounds": [
+        {
+          "input_count": 12,
+          "rejected_count": 2,
+          "rejected_labels": [
+            "bridge",
+            "bridge"
+          ],
+          "rejected_roles": [
+            "extension_center",
+            "extension"
+          ],
+          "round": 0,
+          "stable": false,
+          "survivor_count": 10
+        },
+        {
+          "input_count": 10,
+          "rejected_count": 1,
+          "rejected_labels": [
+            "bridge"
+          ],
+          "rejected_roles": [
+            "connector"
+          ],
+          "round": 1,
+          "stable": false,
+          "survivor_count": 9
+        },
+        {
+          "input_count": 9,
+          "rejected_count": 1,
+          "rejected_labels": [
+            "clean"
+          ],
+          "rejected_roles": [
+            "redundant_core"
+          ],
+          "round": 2,
+          "stable": false,
+          "survivor_count": 8
+        },
+        {
+          "input_count": 8,
+          "rejected_count": 5,
+          "rejected_labels": [
+            "clean",
+            "clean",
+            "clean",
+            "clean",
+            "clean"
+          ],
+          "rejected_roles": [
+            "core",
+            "redundant_core",
+            "redundant_core",
+            "redundant_core",
+            "redundant_core"
+          ],
+          "round": 3,
+          "stable": false,
+          "survivor_count": 3
+        },
+        {
+          "input_count": 3,
+          "rejected_count": 1,
+          "rejected_labels": [
+            "clean"
+          ],
+          "rejected_roles": [
+            "redundant_core"
+          ],
+          "round": 4,
+          "stable": false,
+          "survivor_count": 2
+        },
+        {
+          "input_count": 2,
+          "rejected_count": 0,
+          "rejected_labels": [],
+          "rejected_roles": [],
+          "round": 5,
+          "stable": true,
+          "survivor_count": 2
+        }
+      ],
+      "scene": "hospital_P003"
+    }
+  ],
+  "evidence_label": "observed_operator_characterization_not_official_pipeline",
+  "interpretation": "the operator is non-idempotent in every chain: after the first cleanup, newly relative minima are reclassified as outliers; repeated application removes extension, connector, and core evidence until only two or three reference-near views remain",
+  "interpretation_boundary": "this collapse is a characterization of repeated score use, not a claim that the released one-pass RobustVGGT pipeline performs repeated filtering",
+  "schema_version": 1,
+  "scope": "the released score/filter is reapplied until a fixed point; RobustVGGT itself applies the filter once, so this tests whether the score can serve as an idempotent view-validity predicate",
+  "status": "complete"
+}

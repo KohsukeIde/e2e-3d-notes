@@ -1,0 +1,817 @@
+{
+  "aggregate": {
+    "all_valid_geometry_harmed_scene_count": 4,
+    "distractor_condition_geometry_improved_scene_count": 2,
+    "distractor_rejection_mean": 1.0,
+    "exact_extension_reversal_scene_count": 4,
+    "mean_filtering_delta_all_valid_condition": -0.10338001643333122,
+    "mean_filtering_delta_distractor_condition": 0.02288515235271965,
+    "mean_filtering_effect_differential": 0.12626516878605087,
+    "median_filtering_effect_differential": 0.06699192141303573,
+    "normalization_only_reversal_scene_count": 4,
+    "per_scene_filtering_delta_all_valid_condition": [
+      -0.2549537648612946,
+      -0.04983388704318936,
+      -0.08283313325330133,
+      -0.025899280575539585
+    ],
+    "per_scene_filtering_delta_distractor_condition": [
+      0.10171730515191546,
+      0.05897009966777411,
+      -0.06842737094837936,
+      -0.0007194244604316058
+    ],
+    "per_scene_filtering_effect_differential": [
+      0.3566710700132101,
+      0.10880398671096347,
+      0.014405762304921965,
+      0.02517985611510798
+    ],
+    "positive_filtering_differential_scene_count": 4
+  },
+  "evidence_label": "observed_four_scene_positive_control_replication",
+  "interpretation": "the released set-relative score violates monotonicity: adding worse distractors rescues valid frontier views, while replacing those distractors with valid core views rejects the frontier; filtering the all-valid set reduces held-out bridge-supported completeness in every tested scene, and is more harmful than filtering the distractor set in every paired scene",
+  "interpretation_boundary": "n=4 is a replication smoke, not the preregistered 12-sequence confirmatory test; appearance matching, distractor dosage, real-image confirmation, and architecture transfer remain pending",
+  "rows": [
+    {
+      "all_valid_rejected_roles": [
+        "extension_center",
+        "extension"
+      ],
+      "all_valid_retention": 0.8181818181818182,
+      "base_rejected_roles": [
+        "distractor",
+        "distractor",
+        "distractor",
+        "distractor"
+      ],
+      "base_valid_retention": 1.0,
+      "distractor_rejection": 1.0,
+      "environment": "gascola",
+      "filtering_effect_differential": 0.3566710700132101,
+      "geometry": {
+        "all_valid": {
+          "filtering_delta": -0.2549537648612946,
+          "first_forward_completeness": 0.8863936591809776,
+          "first_forward_median_error_m": 0.12724046383313853,
+          "first_forward_role_completeness": {
+            "connector_only": 0.665785997357992,
+            "core_only": 0.023778071334214,
+            "extension_only": 0.8480845442536328
+          },
+          "query_count": 757,
+          "survivor_rerun_completeness": 0.631439894319683,
+          "survivor_rerun_median_error_m": 0.19337586786719188,
+          "survivor_rerun_role_completeness": {
+            "connector_only": 0.6129458388375165,
+            "core_only": 0.02774108322324967,
+            "extension_only": null
+          },
+          "threshold_m": 0.27124692362335023
+        },
+        "base_anchor_reference": {
+          "filtering_delta": 0.10171730515191546,
+          "first_forward_completeness": 0.7556142668428005,
+          "first_forward_median_error_m": 0.18120634995701437,
+          "first_forward_role_completeness": {
+            "connector_only": 0.5878467635402906,
+            "core_only": 0.0,
+            "extension_only": 0.7357992073976222
+          },
+          "query_count": 757,
+          "survivor_rerun_completeness": 0.857331571994716,
+          "survivor_rerun_median_error_m": 0.15111164116577525,
+          "survivor_rerun_role_completeness": {
+            "connector_only": 0.6446499339498019,
+            "core_only": 0.0,
+            "extension_only": 0.8348745046235139
+          },
+          "threshold_m": 0.27124692362335023
+        }
+      },
+      "normalization_only_rejected_roles": [
+        "extension_center",
+        "extension"
+      ],
+      "same_forward_counterfactual": [
+        {
+          "frame_index": "380",
+          "observed_rejected": false,
+          "observed_score_with_distractors": 0.999998186335507,
+          "role": "anchor",
+          "valid_only_rejected_same_forward": false,
+          "valid_only_score_same_forward": 0.9999916451906667
+        },
+        {
+          "frame_index": "400",
+          "observed_rejected": false,
+          "observed_score_with_distractors": 0.7980156890658323,
+          "role": "core",
+          "valid_only_rejected_same_forward": false,
+          "valid_only_score_same_forward": 0.5516131587746613
+        },
+        {
+          "frame_index": "440",
+          "observed_rejected": false,
+          "observed_score_with_distractors": 0.8474041753524673,
+          "role": "core",
+          "valid_only_rejected_same_forward": false,
+          "valid_only_score_same_forward": 0.7235359823492786
+        },
+        {
+          "frame_index": "370",
+          "observed_rejected": false,
+          "observed_score_with_distractors": 0.9007786804773376,
+          "role": "redundant_core",
+          "valid_only_rejected_same_forward": false,
+          "valid_only_score_same_forward": 0.8652689456152403
+        },
+        {
+          "frame_index": "430",
+          "observed_rejected": false,
+          "observed_score_with_distractors": 0.8560618538572187,
+          "role": "redundant_core",
+          "valid_only_rejected_same_forward": false,
+          "valid_only_score_same_forward": 0.7677447083606808
+        },
+        {
+          "frame_index": "360",
+          "observed_rejected": false,
+          "observed_score_with_distractors": 0.8773319909706514,
+          "role": "connector",
+          "valid_only_rejected_same_forward": false,
+          "valid_only_score_same_forward": 0.812266705019997
+        },
+        {
+          "frame_index": "340",
+          "observed_rejected": false,
+          "observed_score_with_distractors": 0.5743628823400295,
+          "role": "extension_center",
+          "valid_only_rejected_same_forward": true,
+          "valid_only_score_same_forward": 0.0
+        },
+        {
+          "frame_index": "300",
+          "observed_rejected": false,
+          "observed_score_with_distractors": 0.6207272987804551,
+          "role": "extension",
+          "valid_only_rejected_same_forward": true,
+          "valid_only_score_same_forward": 0.10069259124355312
+        }
+      ],
+      "scene": "gascola_P003",
+      "shared_source_views": [
+        {
+          "frame_index": "380",
+          "rejected_all_valid": false,
+          "rejected_with_distractors": false,
+          "role": "anchor",
+          "score_all_valid": 0.9905302079206382,
+          "score_with_distractors": 0.999998186335507
+        },
+        {
+          "frame_index": "400",
+          "rejected_all_valid": false,
+          "rejected_with_distractors": false,
+          "role": "core",
+          "score_all_valid": 0.5152380314400921,
+          "score_with_distractors": 0.7980156890658323
+        },
+        {
+          "frame_index": "440",
+          "rejected_all_valid": false,
+          "rejected_with_distractors": false,
+          "role": "core",
+          "score_all_valid": 0.683232160438455,
+          "score_with_distractors": 0.8474041753524673
+        },
+        {
+          "frame_index": "370",
+          "rejected_all_valid": false,
+          "rejected_with_distractors": false,
+          "role": "redundant_core",
+          "score_all_valid": 0.8634977484469997,
+          "score_with_distractors": 0.9007786804773376
+        },
+        {
+          "frame_index": "430",
+          "rejected_all_valid": false,
+          "rejected_with_distractors": false,
+          "role": "redundant_core",
+          "score_all_valid": 0.736586707944624,
+          "score_with_distractors": 0.8560618538572187
+        },
+        {
+          "frame_index": "360",
+          "rejected_all_valid": false,
+          "rejected_with_distractors": false,
+          "role": "connector",
+          "score_all_valid": 0.7706651249270213,
+          "score_with_distractors": 0.8773319909706514
+        },
+        {
+          "frame_index": "340",
+          "rejected_all_valid": true,
+          "rejected_with_distractors": false,
+          "role": "extension_center",
+          "score_all_valid": 0.03154117722539341,
+          "score_with_distractors": 0.5743628823400295
+        },
+        {
+          "frame_index": "300",
+          "rejected_all_valid": true,
+          "rejected_with_distractors": false,
+          "role": "extension",
+          "score_all_valid": 0.03773094219579598,
+          "score_with_distractors": 0.6207272987804551
+        }
+      ]
+    },
+    {
+      "all_valid_rejected_roles": [
+        "extension_center",
+        "extension"
+      ],
+      "all_valid_retention": 0.8181818181818182,
+      "base_rejected_roles": [
+        "distractor",
+        "distractor",
+        "distractor",
+        "distractor"
+      ],
+      "base_valid_retention": 1.0,
+      "distractor_rejection": 1.0,
+      "environment": "gascola",
+      "filtering_effect_differential": 0.10880398671096347,
+      "geometry": {
+        "all_valid": {
+          "filtering_delta": -0.04983388704318936,
+          "first_forward_completeness": 0.420265780730897,
+          "first_forward_median_error_m": 0.38874171460652485,
+          "first_forward_role_completeness": {
+            "connector_only": 0.32475083056478404,
+            "core_only": 0.008305647840531562,
+            "extension_only": 0.17857142857142858
+          },
+          "query_count": 1204,
+          "survivor_rerun_completeness": 0.3704318936877076,
+          "survivor_rerun_median_error_m": 0.6395033926453817,
+          "survivor_rerun_role_completeness": {
+            "connector_only": 0.36129568106312293,
+            "core_only": 0.01910299003322259,
+            "extension_only": null
+          },
+          "threshold_m": 0.3378032007392248
+        },
+        "base_anchor_reference": {
+          "filtering_delta": 0.05897009966777411,
+          "first_forward_completeness": 0.3164451827242525,
+          "first_forward_median_error_m": 0.4862872531485791,
+          "first_forward_role_completeness": {
+            "connector_only": 0.30564784053156147,
+            "core_only": 0.0,
+            "extension_only": 0.03239202657807309
+          },
+          "query_count": 1204,
+          "survivor_rerun_completeness": 0.3754152823920266,
+          "survivor_rerun_median_error_m": 0.4082767408226573,
+          "survivor_rerun_role_completeness": {
+            "connector_only": 0.292358803986711,
+            "core_only": 0.0,
+            "extension_only": 0.1420265780730897
+          },
+          "threshold_m": 0.3378032007392248
+        }
+      },
+      "normalization_only_rejected_roles": [
+        "extension_center",
+        "extension"
+      ],
+      "same_forward_counterfactual": [
+        {
+          "frame_index": "1200",
+          "observed_rejected": false,
+          "observed_score_with_distractors": 0.9992779893961985,
+          "role": "anchor",
+          "valid_only_rejected_same_forward": false,
+          "valid_only_score_same_forward": 0.9966100331413821
+        },
+        {
+          "frame_index": "1140",
+          "observed_rejected": false,
+          "observed_score_with_distractors": 0.873105726564171,
+          "role": "core",
+          "valid_only_rejected_same_forward": false,
+          "valid_only_score_same_forward": 0.8091244889911122
+        },
+        {
+          "frame_index": "1160",
+          "observed_rejected": false,
+          "observed_score_with_distractors": 0.94002865151732,
+          "role": "core",
+          "valid_only_rejected_same_forward": false,
+          "valid_only_score_same_forward": 0.9259943173051746
+        },
+        {
+          "frame_index": "1190",
+          "observed_rejected": false,
+          "observed_score_with_distractors": 0.8963257254212529,
+          "role": "redundant_core",
+          "valid_only_rejected_same_forward": false,
+          "valid_only_score_same_forward": 0.8712067973541264
+        },
+        {
+          "frame_index": "1180",
+          "observed_rejected": false,
+          "observed_score_with_distractors": 0.8818731090112806,
+          "role": "redundant_core",
+          "valid_only_rejected_same_forward": false,
+          "valid_only_score_same_forward": 0.8564852799350524
+        },
+        {
+          "frame_index": "1220",
+          "observed_rejected": false,
+          "observed_score_with_distractors": 0.8699312895636115,
+          "role": "connector",
+          "valid_only_rejected_same_forward": false,
+          "valid_only_score_same_forward": 0.7662384322181348
+        },
+        {
+          "frame_index": "1240",
+          "observed_rejected": false,
+          "observed_score_with_distractors": 0.5320331655120891,
+          "role": "extension_center",
+          "valid_only_rejected_same_forward": true,
+          "valid_only_score_same_forward": 0.1503776911764583
+        },
+        {
+          "frame_index": "1300",
+          "observed_rejected": false,
+          "observed_score_with_distractors": 0.48211434406501197,
+          "role": "extension",
+          "valid_only_rejected_same_forward": true,
+          "valid_only_score_same_forward": 0.0
+        }
+      ],
+      "scene": "gascola_P005",
+      "shared_source_views": [
+        {
+          "frame_index": "1200",
+          "rejected_all_valid": false,
+          "rejected_with_distractors": false,
+          "role": "anchor",
+          "score_all_valid": 0.9990192214594932,
+          "score_with_distractors": 0.9992779893961985
+        },
+        {
+          "frame_index": "1140",
+          "rejected_all_valid": false,
+          "rejected_with_distractors": false,
+          "role": "core",
+          "score_all_valid": 0.7090380756113316,
+          "score_with_distractors": 0.873105726564171
+        },
+        {
+          "frame_index": "1160",
+          "rejected_all_valid": false,
+          "rejected_with_distractors": false,
+          "role": "core",
+          "score_all_valid": 0.8663625175880658,
+          "score_with_distractors": 0.94002865151732
+        },
+        {
+          "frame_index": "1190",
+          "rejected_all_valid": false,
+          "rejected_with_distractors": false,
+          "role": "redundant_core",
+          "score_all_valid": 0.8741432887179462,
+          "score_with_distractors": 0.8963257254212529
+        },
+        {
+          "frame_index": "1180",
+          "rejected_all_valid": false,
+          "rejected_with_distractors": false,
+          "role": "redundant_core",
+          "score_all_valid": 0.8491484475245802,
+          "score_with_distractors": 0.8818731090112806
+        },
+        {
+          "frame_index": "1220",
+          "rejected_all_valid": false,
+          "rejected_with_distractors": false,
+          "role": "connector",
+          "score_all_valid": 0.7692916569204153,
+          "score_with_distractors": 0.8699312895636115
+        },
+        {
+          "frame_index": "1240",
+          "rejected_all_valid": true,
+          "rejected_with_distractors": false,
+          "role": "extension_center",
+          "score_all_valid": 0.1653155986499637,
+          "score_with_distractors": 0.5320331655120891
+        },
+        {
+          "frame_index": "1300",
+          "rejected_all_valid": true,
+          "rejected_with_distractors": false,
+          "role": "extension",
+          "score_all_valid": 0.0,
+          "score_with_distractors": 0.48211434406501197
+        }
+      ]
+    },
+    {
+      "all_valid_rejected_roles": [
+        "extension_center",
+        "extension"
+      ],
+      "all_valid_retention": 0.8181818181818182,
+      "base_rejected_roles": [
+        "distractor",
+        "distractor",
+        "distractor",
+        "distractor"
+      ],
+      "base_valid_retention": 1.0,
+      "distractor_rejection": 1.0,
+      "environment": "hospital",
+      "filtering_effect_differential": 0.014405762304921965,
+      "geometry": {
+        "all_valid": {
+          "filtering_delta": -0.08283313325330133,
+          "first_forward_completeness": 0.801920768307323,
+          "first_forward_median_error_m": 0.02537827419759403,
+          "first_forward_role_completeness": {
+            "connector_only": 0.6986794717887155,
+            "core_only": 0.09003601440576231,
+            "extension_only": 0.7815126050420168
+          },
+          "query_count": 833,
+          "survivor_rerun_completeness": 0.7190876350540216,
+          "survivor_rerun_median_error_m": 0.04439887224989369,
+          "survivor_rerun_role_completeness": {
+            "connector_only": 0.7154861944777912,
+            "core_only": 0.09123649459783914,
+            "extension_only": null
+          },
+          "threshold_m": 0.1
+        },
+        "base_anchor_reference": {
+          "filtering_delta": -0.06842737094837936,
+          "first_forward_completeness": 0.8595438175270108,
+          "first_forward_median_error_m": 0.030412689264824343,
+          "first_forward_role_completeness": {
+            "connector_only": 0.6602641056422569,
+            "core_only": 0.013205282112845138,
+            "extension_only": 0.8391356542617047
+          },
+          "query_count": 833,
+          "survivor_rerun_completeness": 0.7911164465786314,
+          "survivor_rerun_median_error_m": 0.029049829081557326,
+          "survivor_rerun_role_completeness": {
+            "connector_only": 0.6986794717887155,
+            "core_only": 0.013205282112845138,
+            "extension_only": 0.7635054021608644
+          },
+          "threshold_m": 0.1
+        }
+      },
+      "normalization_only_rejected_roles": [
+        "extension_center",
+        "extension"
+      ],
+      "same_forward_counterfactual": [
+        {
+          "frame_index": "460",
+          "observed_rejected": false,
+          "observed_score_with_distractors": 0.999830718979874,
+          "role": "anchor",
+          "valid_only_rejected_same_forward": false,
+          "valid_only_score_same_forward": 0.9990183366143482
+        },
+        {
+          "frame_index": "440",
+          "observed_rejected": false,
+          "observed_score_with_distractors": 0.9506275809196498,
+          "role": "core",
+          "valid_only_rejected_same_forward": false,
+          "valid_only_score_same_forward": 0.9260773141344756
+        },
+        {
+          "frame_index": "480",
+          "observed_rejected": false,
+          "observed_score_with_distractors": 0.9287721884494384,
+          "role": "core",
+          "valid_only_rejected_same_forward": false,
+          "valid_only_score_same_forward": 0.9042989019632078
+        },
+        {
+          "frame_index": "490",
+          "observed_rejected": false,
+          "observed_score_with_distractors": 0.936320183705452,
+          "role": "redundant_core",
+          "valid_only_rejected_same_forward": false,
+          "valid_only_score_same_forward": 0.918090931214689
+        },
+        {
+          "frame_index": "470",
+          "observed_rejected": false,
+          "observed_score_with_distractors": 0.9395147560074287,
+          "role": "redundant_core",
+          "valid_only_rejected_same_forward": false,
+          "valid_only_score_same_forward": 0.9146144538734742
+        },
+        {
+          "frame_index": "420",
+          "observed_rejected": false,
+          "observed_score_with_distractors": 0.7709114204854676,
+          "role": "connector",
+          "valid_only_rejected_same_forward": false,
+          "valid_only_score_same_forward": 0.5304755576540533
+        },
+        {
+          "frame_index": "400",
+          "observed_rejected": false,
+          "observed_score_with_distractors": 0.5339299624047644,
+          "role": "extension_center",
+          "valid_only_rejected_same_forward": true,
+          "valid_only_score_same_forward": 0.04876792798694046
+        },
+        {
+          "frame_index": "380",
+          "observed_rejected": false,
+          "observed_score_with_distractors": 0.5444888637560164,
+          "role": "extension",
+          "valid_only_rejected_same_forward": true,
+          "valid_only_score_same_forward": 0.024332051782481254
+        }
+      ],
+      "scene": "hospital_P000",
+      "shared_source_views": [
+        {
+          "frame_index": "460",
+          "rejected_all_valid": false,
+          "rejected_with_distractors": false,
+          "role": "anchor",
+          "score_all_valid": 0.9967926102492096,
+          "score_with_distractors": 0.999830718979874
+        },
+        {
+          "frame_index": "440",
+          "rejected_all_valid": false,
+          "rejected_with_distractors": false,
+          "role": "core",
+          "score_all_valid": 0.899878147493186,
+          "score_with_distractors": 0.9506275809196498
+        },
+        {
+          "frame_index": "480",
+          "rejected_all_valid": false,
+          "rejected_with_distractors": false,
+          "role": "core",
+          "score_all_valid": 0.9096075208683818,
+          "score_with_distractors": 0.9287721884494384
+        },
+        {
+          "frame_index": "490",
+          "rejected_all_valid": false,
+          "rejected_with_distractors": false,
+          "role": "redundant_core",
+          "score_all_valid": 0.9149851804871554,
+          "score_with_distractors": 0.936320183705452
+        },
+        {
+          "frame_index": "470",
+          "rejected_all_valid": false,
+          "rejected_with_distractors": false,
+          "role": "redundant_core",
+          "score_all_valid": 0.9094424970225394,
+          "score_with_distractors": 0.9395147560074287
+        },
+        {
+          "frame_index": "420",
+          "rejected_all_valid": false,
+          "rejected_with_distractors": false,
+          "role": "connector",
+          "score_all_valid": 0.5616845805779491,
+          "score_with_distractors": 0.7709114204854676
+        },
+        {
+          "frame_index": "400",
+          "rejected_all_valid": true,
+          "rejected_with_distractors": false,
+          "role": "extension_center",
+          "score_all_valid": 0.05973200504099364,
+          "score_with_distractors": 0.5339299624047644
+        },
+        {
+          "frame_index": "380",
+          "rejected_all_valid": true,
+          "rejected_with_distractors": false,
+          "role": "extension",
+          "score_all_valid": 0.02054305586217253,
+          "score_with_distractors": 0.5444888637560164
+        }
+      ]
+    },
+    {
+      "all_valid_rejected_roles": [
+        "extension_center",
+        "extension"
+      ],
+      "all_valid_retention": 0.8181818181818182,
+      "base_rejected_roles": [
+        "distractor",
+        "distractor",
+        "distractor",
+        "distractor"
+      ],
+      "base_valid_retention": 1.0,
+      "distractor_rejection": 1.0,
+      "environment": "hospital",
+      "filtering_effect_differential": 0.02517985611510798,
+      "geometry": {
+        "all_valid": {
+          "filtering_delta": -0.025899280575539585,
+          "first_forward_completeness": 0.9964028776978417,
+          "first_forward_median_error_m": 0.03605619852421035,
+          "first_forward_role_completeness": {
+            "connector_only": 0.9748201438848921,
+            "core_only": 0.21079136690647482,
+            "extension_only": 0.9856115107913669
+          },
+          "query_count": 1390,
+          "survivor_rerun_completeness": 0.9705035971223022,
+          "survivor_rerun_median_error_m": 0.05017264282537318,
+          "survivor_rerun_role_completeness": {
+            "connector_only": 0.9705035971223022,
+            "core_only": 0.21079136690647482,
+            "extension_only": null
+          },
+          "threshold_m": 0.17124946800979043
+        },
+        "base_anchor_reference": {
+          "filtering_delta": -0.0007194244604316058,
+          "first_forward_completeness": 0.9971223021582734,
+          "first_forward_median_error_m": 0.034805280775396345,
+          "first_forward_role_completeness": {
+            "connector_only": 0.9589928057553957,
+            "core_only": 0.21079136690647482,
+            "extension_only": 0.9820143884892086
+          },
+          "query_count": 1390,
+          "survivor_rerun_completeness": 0.9964028776978417,
+          "survivor_rerun_median_error_m": 0.03623433034133135,
+          "survivor_rerun_role_completeness": {
+            "connector_only": 0.9741007194244604,
+            "core_only": 0.21079136690647482,
+            "extension_only": 0.9848920863309353
+          },
+          "threshold_m": 0.17124946800979043
+        }
+      },
+      "normalization_only_rejected_roles": [
+        "extension_center",
+        "extension"
+      ],
+      "same_forward_counterfactual": [
+        {
+          "frame_index": "100",
+          "observed_rejected": false,
+          "observed_score_with_distractors": 0.9999980461764004,
+          "role": "anchor",
+          "valid_only_rejected_same_forward": false,
+          "valid_only_score_same_forward": 0.999996595597646
+        },
+        {
+          "frame_index": "20",
+          "observed_rejected": false,
+          "observed_score_with_distractors": 0.9154860190159009,
+          "role": "core",
+          "valid_only_rejected_same_forward": false,
+          "valid_only_score_same_forward": 0.8958633704411094
+        },
+        {
+          "frame_index": "40",
+          "observed_rejected": false,
+          "observed_score_with_distractors": 0.9280337683407527,
+          "role": "core",
+          "valid_only_rejected_same_forward": false,
+          "valid_only_score_same_forward": 0.9160531521549324
+        },
+        {
+          "frame_index": "90",
+          "observed_rejected": false,
+          "observed_score_with_distractors": 0.9307399372545133,
+          "role": "redundant_core",
+          "valid_only_rejected_same_forward": false,
+          "valid_only_score_same_forward": 0.9191000586801739
+        },
+        {
+          "frame_index": "110",
+          "observed_rejected": false,
+          "observed_score_with_distractors": 0.9549433100505464,
+          "role": "redundant_core",
+          "valid_only_rejected_same_forward": false,
+          "valid_only_score_same_forward": 0.9448191476896997
+        },
+        {
+          "frame_index": "140",
+          "observed_rejected": false,
+          "observed_score_with_distractors": 0.7285546638719773,
+          "role": "connector",
+          "valid_only_rejected_same_forward": false,
+          "valid_only_score_same_forward": 0.6170163583822453
+        },
+        {
+          "frame_index": "220",
+          "observed_rejected": false,
+          "observed_score_with_distractors": 0.4164197082387978,
+          "role": "extension_center",
+          "valid_only_rejected_same_forward": true,
+          "valid_only_score_same_forward": 0.030704297605684005
+        },
+        {
+          "frame_index": "200",
+          "observed_rejected": false,
+          "observed_score_with_distractors": 0.4038015108955632,
+          "role": "extension",
+          "valid_only_rejected_same_forward": true,
+          "valid_only_score_same_forward": 0.0
+        }
+      ],
+      "scene": "hospital_P003",
+      "shared_source_views": [
+        {
+          "frame_index": "100",
+          "rejected_all_valid": false,
+          "rejected_with_distractors": false,
+          "role": "anchor",
+          "score_all_valid": 0.9999967188464105,
+          "score_with_distractors": 0.9999980461764004
+        },
+        {
+          "frame_index": "20",
+          "rejected_all_valid": false,
+          "rejected_with_distractors": false,
+          "role": "core",
+          "score_all_valid": 0.8356184748506752,
+          "score_with_distractors": 0.9154860190159009
+        },
+        {
+          "frame_index": "40",
+          "rejected_all_valid": false,
+          "rejected_with_distractors": false,
+          "role": "core",
+          "score_all_valid": 0.8726745427190384,
+          "score_with_distractors": 0.9280337683407527
+        },
+        {
+          "frame_index": "90",
+          "rejected_all_valid": false,
+          "rejected_with_distractors": false,
+          "role": "redundant_core",
+          "score_all_valid": 0.9107674537298558,
+          "score_with_distractors": 0.9307399372545133
+        },
+        {
+          "frame_index": "110",
+          "rejected_all_valid": false,
+          "rejected_with_distractors": false,
+          "role": "redundant_core",
+          "score_all_valid": 0.9505349454659047,
+          "score_with_distractors": 0.9549433100505464
+        },
+        {
+          "frame_index": "140",
+          "rejected_all_valid": false,
+          "rejected_with_distractors": false,
+          "role": "connector",
+          "score_all_valid": 0.6388401752883694,
+          "score_with_distractors": 0.7285546638719773
+        },
+        {
+          "frame_index": "220",
+          "rejected_all_valid": true,
+          "rejected_with_distractors": false,
+          "role": "extension_center",
+          "score_all_valid": 0.03393415442694754,
+          "score_with_distractors": 0.4164197082387978
+        },
+        {
+          "frame_index": "200",
+          "rejected_all_valid": true,
+          "rejected_with_distractors": false,
+          "role": "extension",
+          "score_all_valid": 0.0,
+          "score_with_distractors": 0.4038015108955632
+        }
+      ]
+    }
+  ],
+  "scene_count": 4,
+  "schema_version": 1,
+  "scope": "four TartanAir trajectories across gascola and hospital; distractors are deliberately obvious different-environment positive controls and are not appearance matched",
+  "status": "complete"
+}

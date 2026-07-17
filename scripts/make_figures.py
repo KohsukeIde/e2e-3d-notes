@@ -695,8 +695,8 @@ def plot_set_relative_filter_geometry(geometry: dict) -> None:
         same_retained = sum(not item["rejected_all_valid"] for item in remote)
         decision_texts.append(
             [
-                f"score {mixed_score:.2f}\n{mixed_retained}/2枚を保持",
-                f"score {same_score:.2f}\n{same_retained}/2枚を保持",
+                f"平均score {mixed_score:.2f}\n{mixed_retained}枚とも保持" if mixed_retained == 2 else f"平均score {mixed_score:.2f}\n2枚とも除外",
+                f"平均score {same_score:.2f}\n{same_retained}枚とも保持" if same_retained == 2 else f"平均score {same_score:.2f}\n2枚とも除外",
             ]
         )
         decision_colors.append(
@@ -708,7 +708,7 @@ def plot_set_relative_filter_geometry(geometry: dict) -> None:
         )
         geometry_texts.append(
             [
-                f"{value:+.1f} point\n{'改善' if value > 0.5 else '悪化' if value < -0.5 else 'ほぼ不変'}"
+                f"除外後 − 除外前\n{value:+.1f}ポイント（{'改善' if value > 0.5 else '悪化' if value < -0.5 else 'ほぼ不変'}）"
                 for value in deltas
             ]
         )
@@ -716,29 +716,44 @@ def plot_set_relative_filter_geometry(geometry: dict) -> None:
             ["#D8EFE2" if value > 0.5 else "#F6D9D5" if value < -0.5 else "#F8EDC8" for value in deltas]
         )
 
-    fig, axes = plt.subplots(1, 2, figsize=(13.5, 5.0), constrained_layout=True)
+    fig, axis = plt.subplots(figsize=(7.4, 5.4), constrained_layout=True)
     _result_table(
-        axes[0],
+        axis,
         list(scene_labels),
         list(columns),
         decision_texts,
         decision_colors,
-        "同じ遠方2画像の判定",
+        "最後の4枚だけを変えると，同じ遠方2画像の判定が反転した",
     )
+    fig.text(
+        0.57,
+        0.025,
+        "scoreが0.4未満の画像を除外する",
+        ha="center",
+        fontsize=10.5,
+        color="#333333",
+    )
+    fig.savefig(FIGURES / "filter_decision_flip.png", bbox_inches="tight")
+    plt.close(fig)
+
+    fig, axis = plt.subplots(figsize=(7.4, 5.4), constrained_layout=True)
     _result_table(
-        axes[1],
+        axis,
         list(scene_labels),
         list(columns),
         geometry_texts,
         geometry_colors,
-        "除外前後の3D completeness変化",
+        "画像除外によって，遠方側の3D表面の再構成率がどう変わったか",
     )
-    fig.suptitle(
-        "最後の4枚だけを変えると，同じ正しい遠方画像の判定と3D結果が反転する",
-        fontsize=14,
-        fontweight="bold",
+    fig.text(
+        0.57,
+        0.025,
+        "負の値ほど，除外によって未再構成の表面が増えた",
+        ha="center",
+        fontsize=10.5,
+        color="#333333",
     )
-    fig.savefig(FIGURES / "set_relative_filter_geometry.png", bbox_inches="tight")
+    fig.savefig(FIGURES / "filter_geometry_effect.png", bbox_inches="tight")
     plt.close(fig)
 
 
@@ -750,7 +765,7 @@ def plot_iterative_filter_cascade(cascade: dict) -> None:
         if row["scene"] == "gascola_P003" and row["condition"] == "base_anchor_reference"
     )
     assert [item["survivor_count"] for item in example["rounds"]] == [8, 6, 4, 2, 2]
-    fig, axis = plt.subplots(figsize=(14.5, 5.1))
+    fig, axis = plt.subplots(figsize=(14.5, 4.2))
     axis.set_xlim(0, 1)
     axis.set_ylim(0, 1)
     axis.axis("off")
@@ -764,20 +779,20 @@ def plot_iterative_filter_cascade(cascade: dict) -> None:
     )
     stage_colors = ("#EEEEEE", "#E2EEF7", "#F8E0DB", "#F8E0DB", "#F8E0DB")
     for x, text, color in zip(x_positions, stage_texts, stage_colors):
-        _box(axis, x, 0.51, 0.13, 0.18, text, color, fontsize=11)
+        _box(axis, x, 0.39, 0.13, 0.18, text, color, fontsize=11)
     arrow_labels = (
         ("別scene画像4枚\nを正しく除外", "#333333"),
-        ("正しい遠方画像2枚\nを誤って除外", "#B43C2D"),
-        ("正しい基準側画像2枚\nを誤って除外", "#B43C2D"),
-        ("両側に重なる正しい画像と\n基準側画像を誤って除外", "#B43C2D"),
+        ("同じsceneの正しい画像2枚\nを誤って除外", "#B43C2D"),
+        ("同じsceneの正しい画像2枚\nを誤って除外", "#B43C2D"),
+        ("同じsceneの正しい画像2枚\nを誤って除外", "#B43C2D"),
     )
     for index, (label, color) in enumerate(arrow_labels):
-        start = (x_positions[index] + 0.132, 0.60)
-        end = (x_positions[index + 1] - 0.004, 0.60)
+        start = (x_positions[index] + 0.132, 0.48)
+        end = (x_positions[index + 1] - 0.004, 0.48)
         _arrow(axis, start, end)
         axis.text(
             (start[0] + end[0]) / 2,
-            0.73 if index != 3 else 0.75,
+            0.63 if index != 3 else 0.65,
             label,
             ha="center",
             va="bottom",
@@ -785,23 +800,60 @@ def plot_iterative_filter_cascade(cascade: dict) -> None:
             color=color,
             fontweight="bold" if color != "#333333" else "normal",
         )
-    _box(
-        axis,
-        0.12,
-        0.10,
-        0.76,
-        0.18,
-        "4画像系列×2入力条件の8/8条件で，1回目の後も新しい正しい画像が除外された．\n5〜7回で安定し，最終的に残ったのは12枚中2〜3枚だった．",
-        "#FFF3D6",
-        fontsize=11,
-    )
     axis.set_title(
-        "同じ除外処理を残った画像へ繰り返すと，棄却対象が正しい画像へ移る\n（代表例：森林1，別scene画像を含む入力）",
+        "1回目に別scene画像を除いた後も，正しい画像の除外が続いた\n（森林1の一例，左から右へ1回ずつ除外処理を適用）",
         fontsize=14,
         fontweight="bold",
         pad=18,
     )
-    fig.savefig(FIGURES / "iterative_filter_cascade.png", bbox_inches="tight")
+    fig.savefig(FIGURES / "iterative_filter_example.png", bbox_inches="tight")
+    plt.close(fig)
+
+    scene_order = ("gascola_P003", "gascola_P005", "hospital_P000", "hospital_P003")
+    scene_labels = {
+        "gascola_P003": "森林 1",
+        "gascola_P005": "森林 2",
+        "hospital_P000": "病院 1",
+        "hospital_P003": "病院 2",
+    }
+    condition_order = ("base_anchor_reference", "all_valid")
+    condition_labels = (
+        "別scene画像4枚を含む入力",
+        "12枚すべて同じsceneの入力",
+    )
+    by_key = {(row["scene"], row["condition"]): row for row in chains}
+    texts = []
+    colors = []
+    for scene in scene_order:
+        scene_texts = []
+        scene_colors = []
+        for condition in condition_order:
+            row = by_key[(scene, condition)]
+            counts = [row["rounds"][0]["input_count"]]
+            counts.extend(item["survivor_count"] for item in row["rounds"])
+            scene_texts.append(" → ".join(str(value) for value in counts))
+            scene_colors.append("#F8E0DB")
+        texts.append(scene_texts)
+        colors.append(scene_colors)
+
+    fig, axis = plt.subplots(figsize=(9.2, 5.4), constrained_layout=True)
+    _result_table(
+        axis,
+        [scene_labels[scene] for scene in scene_order],
+        list(condition_labels),
+        texts,
+        colors,
+        "8条件すべてで，2回目以降も残る画像が減り続けた",
+    )
+    fig.text(
+        0.59,
+        0.025,
+        "数字は各回の処理後に残った画像枚数．末尾の同じ数字は，次の処理で変化しなかったことを表す",
+        ha="center",
+        fontsize=9.8,
+        color="#333333",
+    )
+    fig.savefig(FIGURES / "iterative_filter_all_conditions.png", bbox_inches="tight")
     plt.close(fig)
 
 
@@ -882,7 +934,7 @@ def plot_distractor_subset_law(results: dict) -> None:
         fontsize=14,
         fontweight="bold",
     )
-    fig.savefig(FIGURES / "distractor_subset_law.png", bbox_inches="tight")
+    fig.savefig(FIGURES / "distractor_count_summary.png", bbox_inches="tight")
     plt.close(fig)
 
 
@@ -936,7 +988,7 @@ def plot_shared_output_projectivity(results: dict) -> None:
         fontsize=14,
         fontweight="bold",
     )
-    fig.savefig(FIGURES / "shared_output_projectivity.png", bbox_inches="tight")
+    fig.savefig(FIGURES / "shared_output_context_summary.png", bbox_inches="tight")
     plt.close(fig)
 
 
@@ -980,11 +1032,13 @@ def main() -> None:
             "constraint_output_hypothesis.png",
             "constraint_matched_test.png",
             "filter_qualitative_example.png",
-            "set_relative_filter_geometry.png",
-            "iterative_filter_cascade.png",
-            "distractor_subset_law.png",
+            "filter_decision_flip.png",
+            "filter_geometry_effect.png",
+            "iterative_filter_example.png",
+            "iterative_filter_all_conditions.png",
+            "distractor_count_summary.png",
             "projectivity_qualitative_example.png",
-            "shared_output_projectivity.png",
+            "shared_output_context_summary.png",
         ):
             path = FIGURES / name
             assert path.exists() and path.stat().st_size > 10_000, path

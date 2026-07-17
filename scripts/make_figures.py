@@ -20,6 +20,7 @@ import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
 import matplotlib.patheffects as path_effects  # noqa: E402
 from matplotlib import font_manager  # noqa: E402
+from matplotlib.lines import Line2D  # noqa: E402
 from matplotlib.patches import FancyArrowPatch, FancyBboxPatch, Rectangle  # noqa: E402
 
 
@@ -675,140 +676,95 @@ def plot_constraint_matched_test() -> None:
 def plot_set_relative_filter_geometry(geometry: dict) -> None:
     rows = geometry["rows"]
     scene_labels = ("森林 1", "森林 2", "病院 1", "病院 2")
-    columns = (
-        "別scene画像を\n4枚追加",
-        "同じsceneの近傍画像を\n4枚追加",
-    )
-    decision_texts = []
-    decision_colors = []
-    geometry_texts = []
-    geometry_colors = []
+    score_groups = ([], [])
+    geometry_groups = ([], [])
     for row in rows:
         remote = [
             item
             for item in row["shared_source_views"]
             if item["role"] in {"extension_center", "extension"}
         ]
-        mixed_score = float(np.mean([item["score_with_distractors"] for item in remote]))
-        same_score = float(np.mean([item["score_all_valid"] for item in remote]))
-        mixed_retained = sum(not item["rejected_with_distractors"] for item in remote)
-        same_retained = sum(not item["rejected_all_valid"] for item in remote)
-        decision_texts.append(
-            [
-                f"平均score {mixed_score:.2f}\n{mixed_retained}枚とも保持" if mixed_retained == 2 else f"平均score {mixed_score:.2f}\n2枚とも除外",
-                f"平均score {same_score:.2f}\n{same_retained}枚とも保持" if same_retained == 2 else f"平均score {same_score:.2f}\n2枚とも除外",
-            ]
+        score_groups[0].append([item["score_with_distractors"] for item in remote])
+        score_groups[1].append([item["score_all_valid"] for item in remote])
+        geometry_groups[0].append(
+            100.0 * row["geometry"]["base_anchor_reference"]["filtering_delta"]
         )
-        decision_colors.append(
-            ["#D8EFE2" if mixed_retained == 2 else "#F6D9D5", "#D8EFE2" if same_retained == 2 else "#F6D9D5"]
-        )
-        deltas = (
-            100.0 * row["geometry"]["base_anchor_reference"]["filtering_delta"],
-            100.0 * row["geometry"]["all_valid"]["filtering_delta"],
-        )
-        geometry_texts.append(
-            [
-                f"除外後 − 除外前\n{value:+.1f}ポイント（{'改善' if value > 0.5 else '悪化' if value < -0.5 else 'ほぼ不変'}）"
-                for value in deltas
-            ]
-        )
-        geometry_colors.append(
-            ["#D8EFE2" if value > 0.5 else "#F6D9D5" if value < -0.5 else "#F8EDC8" for value in deltas]
+        geometry_groups[1].append(
+            100.0 * row["geometry"]["all_valid"]["filtering_delta"]
         )
 
-    fig, axis = plt.subplots(figsize=(7.4, 5.4), constrained_layout=True)
-    _result_table(
-        axis,
-        list(scene_labels),
-        list(columns),
-        decision_texts,
-        decision_colors,
-        "最後の4枚だけを変えると，同じ遠方2画像の判定が反転した",
+    fig, axis = plt.subplots(figsize=(10.6, 5.5), constrained_layout=True)
+    score_titles = (
+        "別scene画像を4枚追加",
+        "同じsceneの近傍画像を4枚追加",
     )
-    fig.text(
-        0.57,
-        0.025,
-        "scoreが0.4未満の画像を除外する",
-        ha="center",
-        fontsize=10.5,
-        color="#333333",
+    score_colors = ("#3B78A8", "#C65D3B")
+    y = np.arange(len(scene_labels))
+    offsets = (-0.16, 0.16)
+    for groups, title, color, offset in zip(score_groups, score_titles, score_colors, offsets):
+        for index, values in enumerate(groups):
+            low, high = min(values), max(values)
+            mean = float(np.mean(values))
+            position = index + offset
+            axis.hlines(position, low, high, color=color, linewidth=4, alpha=0.75)
+            axis.scatter(values, [position, position], s=46, facecolor="white", edgecolor=color, linewidth=1.8, zorder=3)
+            axis.scatter(mean, position, s=70, marker="D", color=color, edgecolor="white", linewidth=0.8, zorder=4)
+            axis.text(mean + 0.022, position, f"{mean:.2f}", va="center", fontsize=9.2, fontweight="bold")
+        axis.plot([], [], color=color, linewidth=4, marker="D", label=title)
+    axis.axvspan(-0.02, 0.4, color="#C94C3C", alpha=0.045)
+    axis.axvspan(0.4, 0.70, color="#3F8F67", alpha=0.045)
+    axis.axvline(0.4, color="#333333", linestyle="--", linewidth=1.4)
+    axis.text(0.19, -0.72, "score 0.4未満：除外", ha="center", va="center", fontsize=9, color="#555555")
+    axis.text(0.55, -0.72, "score 0.4以上：保持", ha="center", va="center", fontsize=9, color="#555555")
+    axis.set_xlim(-0.02, 0.70)
+    axis.set_ylim(len(scene_labels) - 0.5, -0.9)
+    axis.set_xticks(np.arange(0.0, 0.8, 0.1))
+    axis.set_xlabel("共通する遠方2画像のscore")
+    axis.set_yticks(y, scene_labels)
+    axis.grid(axis="x", color="#D8D8D8", linewidth=0.7)
+    axis.set_axisbelow(True)
+    axis.legend(loc="lower center", bbox_to_anchor=(0.5, 1.01), ncol=2, frameon=False)
+    axis.set_title(
+        "最後の4枚だけを変えると，同じ遠方2画像のscoreがthresholdをまたいだ",
+        fontsize=14,
+        fontweight="bold",
+        pad=48,
     )
-    fig.savefig(FIGURES / "filter_decision_flip.png", bbox_inches="tight")
+    fig.savefig(FIGURES / "filter_score_comparison.png", bbox_inches="tight")
     plt.close(fig)
 
-    fig, axis = plt.subplots(figsize=(7.4, 5.4), constrained_layout=True)
-    _result_table(
-        axis,
-        list(scene_labels),
-        list(columns),
-        geometry_texts,
-        geometry_colors,
-        "画像除外によって，遠方側の3D表面の再構成率がどう変わったか",
+    fig, axes = plt.subplots(1, 2, figsize=(11.5, 5.1), sharex=True, sharey=True, constrained_layout=True)
+    for axis, values, title in zip(axes, geometry_groups, score_titles):
+        colors = ["#3F8F67" if value > 0.5 else "#C94C3C" if value < -0.5 else "#B39B42" for value in values]
+        axis.barh(y, values, height=0.58, color=colors, alpha=0.9)
+        axis.axvline(0.0, color="#333333", linewidth=1.1)
+        for index, value in enumerate(values):
+            axis.text(
+                value + (0.7 if value >= 0 else -0.7),
+                index,
+                f"{value:+.1f}",
+                ha="left" if value >= 0 else "right",
+                va="center",
+                fontweight="bold",
+            )
+        axis.set_title(title, fontweight="bold", pad=12)
+        axis.set_xlim(-30, 15)
+        axis.set_xlabel("画像除外後 − 除外前（ポイント）")
+        axis.set_yticks(y, scene_labels)
+        axis.grid(axis="x", color="#D8D8D8", linewidth=0.7)
+        axis.set_axisbelow(True)
+    axes[0].invert_yaxis()
+    fig.suptitle(
+        "遠方側の3D表面の再構成率は，正しい遠方画像を除外すると一貫して低下した",
+        fontsize=14,
+        fontweight="bold",
     )
-    fig.text(
-        0.57,
-        0.025,
-        "負の値ほど，除外によって未再構成の表面が増えた",
-        ha="center",
-        fontsize=10.5,
-        color="#333333",
-    )
-    fig.savefig(FIGURES / "filter_geometry_effect.png", bbox_inches="tight")
+    fig.savefig(FIGURES / "filter_geometry_change.png", bbox_inches="tight")
     plt.close(fig)
 
 
 def plot_iterative_filter_cascade(cascade: dict) -> None:
     chains = cascade["chains"]
-    example = next(
-        row
-        for row in chains
-        if row["scene"] == "gascola_P003" and row["condition"] == "base_anchor_reference"
-    )
-    assert [item["survivor_count"] for item in example["rounds"]] == [8, 6, 4, 2, 2]
-    fig, axis = plt.subplots(figsize=(14.5, 4.2))
-    axis.set_xlim(0, 1)
-    axis.set_ylim(0, 1)
-    axis.axis("off")
-    x_positions = (0.015, 0.225, 0.435, 0.645, 0.855)
-    stage_texts = (
-        "入力\n12枚",
-        "1回目後\n8枚",
-        "2回目後\n6枚",
-        "3回目後\n4枚",
-        "4回目後\n2枚で安定",
-    )
-    stage_colors = ("#EEEEEE", "#E2EEF7", "#F8E0DB", "#F8E0DB", "#F8E0DB")
-    for x, text, color in zip(x_positions, stage_texts, stage_colors):
-        _box(axis, x, 0.39, 0.13, 0.18, text, color, fontsize=11)
-    arrow_labels = (
-        ("別scene画像4枚\nを正しく除外", "#333333"),
-        ("同じsceneの正しい画像2枚\nを誤って除外", "#B43C2D"),
-        ("同じsceneの正しい画像2枚\nを誤って除外", "#B43C2D"),
-        ("同じsceneの正しい画像2枚\nを誤って除外", "#B43C2D"),
-    )
-    for index, (label, color) in enumerate(arrow_labels):
-        start = (x_positions[index] + 0.132, 0.48)
-        end = (x_positions[index + 1] - 0.004, 0.48)
-        _arrow(axis, start, end)
-        axis.text(
-            (start[0] + end[0]) / 2,
-            0.63 if index != 3 else 0.65,
-            label,
-            ha="center",
-            va="bottom",
-            fontsize=8.7,
-            color=color,
-            fontweight="bold" if color != "#333333" else "normal",
-        )
-    axis.set_title(
-        "1回目に別scene画像を除いた後も，正しい画像の除外が続いた\n（森林1の一例，左から右へ1回ずつ除外処理を適用）",
-        fontsize=14,
-        fontweight="bold",
-        pad=18,
-    )
-    fig.savefig(FIGURES / "iterative_filter_example.png", bbox_inches="tight")
-    plt.close(fig)
-
     scene_order = ("gascola_P003", "gascola_P005", "hospital_P000", "hospital_P003")
     scene_labels = {
         "gascola_P003": "森林 1",
@@ -818,42 +774,73 @@ def plot_iterative_filter_cascade(cascade: dict) -> None:
     }
     condition_order = ("base_anchor_reference", "all_valid")
     condition_labels = (
-        "別scene画像4枚を含む入力",
-        "12枚すべて同じsceneの入力",
+        "別scene画像4枚を含む入力\n1回目だけは別scene画像を正しく除外",
+        "12枚すべて同じsceneの入力\n画像が減る処理はすべて誤除外",
     )
     by_key = {(row["scene"], row["condition"]): row for row in chains}
-    texts = []
-    colors = []
-    for scene in scene_order:
-        scene_texts = []
-        scene_colors = []
-        for condition in condition_order:
+    correct_color = "#3B78A8"
+    error_color = "#C94C3C"
+    stable_color = "#777777"
+    fig, axes = plt.subplots(4, 2, figsize=(11.8, 10.8), sharex=True, sharey=True)
+    fig.subplots_adjust(left=0.11, right=0.98, bottom=0.08, top=0.81, hspace=0.15, wspace=0.08)
+    for scene_index, scene in enumerate(scene_order):
+        for condition_index, condition in enumerate(condition_order):
+            axis = axes[scene_index, condition_index]
             row = by_key[(scene, condition)]
             counts = [row["rounds"][0]["input_count"]]
             counts.extend(item["survivor_count"] for item in row["rounds"])
-            scene_texts.append(" → ".join(str(value) for value in counts))
-            scene_colors.append("#F8E0DB")
-        texts.append(scene_texts)
-        colors.append(scene_colors)
-
-    fig, axis = plt.subplots(figsize=(9.2, 5.4), constrained_layout=True)
-    _result_table(
-        axis,
-        [scene_labels[scene] for scene in scene_order],
-        list(condition_labels),
-        texts,
-        colors,
-        "8条件すべてで，2回目以降も残る画像が減り続けた",
+            rounds = np.arange(len(counts))
+            for step in range(len(counts) - 1):
+                if counts[step + 1] == counts[step]:
+                    color = stable_color
+                elif condition_index == 0 and step == 0:
+                    color = correct_color
+                else:
+                    color = error_color
+                axis.plot(
+                    rounds[step : step + 2],
+                    counts[step : step + 2],
+                    color=color,
+                    linewidth=2.8,
+                    marker="o",
+                    markersize=5.5,
+                )
+            for round_index, count in zip(rounds[:-1], counts[:-1]):
+                axis.text(round_index, count + 0.55, str(count), ha="center", va="bottom", fontsize=8.5)
+            axis.text(
+                rounds[-1],
+                counts[-1] + 0.55,
+                f"{counts[-1]}枚で安定",
+                ha="center",
+                va="bottom",
+                fontsize=8.5,
+                fontweight="bold",
+            )
+            axis.set_xlim(-0.25, 7.45)
+            axis.set_ylim(0, 14)
+            axis.set_xticks(range(8))
+            axis.set_yticks((0, 4, 8, 12))
+            axis.grid(color="#DEDEDE", linewidth=0.65)
+            axis.set_axisbelow(True)
+            if scene_index == 0:
+                axis.set_title(condition_labels[condition_index], fontweight="bold", pad=12)
+            if condition_index == 0:
+                axis.set_ylabel(scene_labels[scene])
+    legend = (
+        Line2D([0], [0], color=correct_color, marker="o", linewidth=2.8, label="別scene画像だけを正しく除外"),
+        Line2D([0], [0], color=error_color, marker="o", linewidth=2.8, label="正しい画像を誤って除外"),
+        Line2D([0], [0], color=stable_color, marker="o", linewidth=2.8, label="画像集合は変化なし"),
     )
-    fig.text(
-        0.59,
-        0.025,
-        "数字は各回の処理後に残った画像枚数．末尾の同じ数字は，次の処理で変化しなかったことを表す",
-        ha="center",
-        fontsize=9.8,
-        color="#333333",
+    fig.legend(handles=legend, loc="upper center", ncol=3, frameon=False, bbox_to_anchor=(0.5, 0.925))
+    fig.supxlabel("除外処理の適用回数", y=0.025)
+    fig.supylabel("残った画像枚数", x=0.025)
+    fig.suptitle(
+        "同じ除外処理を繰り返すと，8条件すべてで正しい画像まで除外された",
+        fontsize=14,
+        fontweight="bold",
+        y=0.985,
     )
-    fig.savefig(FIGURES / "iterative_filter_all_conditions.png", bbox_inches="tight")
+    fig.savefig(FIGURES / "iterative_filter_small_multiples.png", bbox_inches="tight")
     plt.close(fig)
 
 
@@ -865,130 +852,111 @@ def plot_distractor_subset_law(results: dict) -> None:
         "hospital_P000": "病院 1",
         "hospital_P003": "病院 2",
     }
-    texts = []
-    colors = []
-    for scene in scene_order:
-        fractions = [
-            results["scenes"][scene]["by_distractor_count"][str(count)][
-                "both_retained_fraction"
-            ]
-            for count in range(5)
-        ]
-        texts.append([f"{100.0 * value:.0f}%" for value in fractions])
-        colors.append(
+    counts = np.arange(5)
+    fig, axes = plt.subplots(2, 2, figsize=(9.4, 7.4), sharex=True, sharey=True, constrained_layout=True)
+    for axis, scene in zip(axes.flat, scene_order):
+        fractions = np.array(
             [
-                "#D8EFE2" if value >= 0.999 else "#F8EDC8" if value > 0 else "#F6D9D5"
-                for value in fractions
+                results["scenes"][scene]["by_distractor_count"][str(count)][
+                    "both_retained_fraction"
+                ]
+                for count in counts
             ]
         )
-    fig, axes = plt.subplots(
-        1,
-        2,
-        figsize=(13.8, 4.8),
-        gridspec_kw={"width_ratios": (1.45, 0.8)},
-        constrained_layout=True,
-    )
-    _result_table(
-        axes[0],
-        [scene_labels[scene] for scene in scene_order],
-        [f"{count}枚" for count in range(5)],
-        texts,
-        colors,
-        "遠方2画像をともに保持した組合せの割合",
-    )
-    axes[1].set_xlim(0, 1)
-    axes[1].set_ylim(0, 1)
-    axes[1].axis("off")
-    _box(
-        axes[1],
-        0.08,
-        0.66,
-        0.84,
-        0.20,
-        "主効果は枚数\n別scene画像の枚数だけでscore変動の平均93%を説明",
-        "#E2EEF7",
-        fontsize=10.5,
-    )
-    _box(
-        axes[1],
-        0.08,
-        0.39,
-        0.84,
-        0.20,
-        "ただし画像の選び方も効く\n同じ枚数でも，保持する組合せと棄却する組合せが存在",
-        "#FFF3D6",
-        fontsize=10.5,
-    )
-    _box(
-        axes[1],
-        0.08,
-        0.12,
-        0.84,
-        0.20,
-        "scoreの尺度決めが必要\n救済した44条件は，再正規化だけで44→0条件へ消失",
-        "#F6D9D5",
-        fontsize=10.5,
-    )
+        percentages = 100.0 * fractions
+        axis.plot(counts, percentages, color="#3B78A8", linewidth=2.6, marker="o", markersize=7)
+        for count, value in zip(counts, percentages):
+            axis.text(count, value + 5.0, f"{value:.0f}%", ha="center", va="bottom", fontsize=9.2)
+        axis.set_title(scene_labels[scene], fontweight="bold")
+        axis.set_xlim(-0.25, 4.25)
+        axis.set_ylim(-5, 115)
+        axis.set_xticks(counts)
+        axis.set_yticks((0, 25, 50, 75, 100))
+        axis.grid(color="#DEDEDE", linewidth=0.7)
+        axis.set_axisbelow(True)
+    fig.supxlabel("最後の4枠に含めた別scene画像の枚数")
+    fig.supylabel("遠方2画像をともに保持した組合せ（%）")
     fig.suptitle(
-        "別scene画像が増えるほど正しい遠方画像は保持されやすいが，枚数だけでは決まらない",
+        "別scene画像が増えるほど，正しい遠方2画像は保持されやすくなった",
         fontsize=14,
         fontweight="bold",
     )
-    fig.savefig(FIGURES / "distractor_count_summary.png", bbox_inches="tight")
+    fig.savefig(FIGURES / "distractor_count_curves.png", bbox_inches="tight")
     plt.close(fig)
 
 
 def plot_shared_output_projectivity(results: dict) -> None:
     labels = ("森林 1", "森林 2", "病院 1", "病院 2")
     rows = results["scenes"]
-    error_texts = []
-    error_colors = []
-    role_texts = []
-    role_colors = []
+    distractor_errors = []
+    valid_errors = []
+    core_shifts = []
+    remote_shifts = []
     for row in rows:
-        error_values = (
-            100.0 * row["point_error_relative_change"]["distractor_context"],
-            100.0 * row["point_error_relative_change"]["redundant_context"],
+        distractor_errors.append(
+            100.0 * row["point_error_relative_change"]["distractor_context"]
         )
-        error_texts.append(
-            [
-                f"{value:+.1f}%\n{'悪化' if value > 0 else '改善'}"
-                for value in error_values
-            ]
-        )
-        error_colors.append(
-            ["#F6D9D5" if value > 0 else "#D8EFE2" for value in error_values]
+        valid_errors.append(
+            100.0 * row["point_error_relative_change"]["redundant_context"]
         )
         comparison = row["comparisons_to_common_only"]["distractor_context"][
             "point_shift_fraction_of_camera_diameter"
         ]
-        role_values = (100.0 * comparison["core"]["median"], 100.0 * comparison["extension"]["median"])
-        role_texts.append([f"{value:.2f}%" for value in role_values])
-        role_colors.append(["#E2EEF7", "#F4DCEB"])
+        core_shifts.append(100.0 * comparison["core"]["median"])
+        remote_shifts.append(100.0 * comparison["extension"]["median"])
 
-    fig, axes = plt.subplots(1, 2, figsize=(13.5, 5.0), constrained_layout=True)
-    _result_table(
-        axes[0],
-        list(labels),
-        ["別scene画像を\n4枚追加", "同じsceneの近傍画像を\n4枚追加"],
-        error_texts,
-        error_colors,
-        "共通8画像のpoint map誤差の変化",
+    y = np.arange(len(labels))
+    height = 0.32
+    fig, axes = plt.subplots(1, 2, figsize=(13.8, 6.4))
+    fig.subplots_adjust(left=0.07, right=0.98, bottom=0.25, top=0.78, wspace=0.16)
+    left_series = (
+        (np.array(distractor_errors), -height / 1.8, "#C94C3C", "別scene画像4枚を追加"),
+        (np.array(valid_errors), height / 1.8, "#3B78A8", "同じsceneの近傍画像4枚を追加"),
     )
-    _result_table(
-        axes[1],
-        list(labels),
-        ["基準画像と重なる\n5画像", "基準側と直接ほぼ\n重ならない2画像"],
-        role_texts,
-        role_colors,
-        "別scene画像追加時の3D点の変位",
+    for values, offset, color, label in left_series:
+        axes[0].barh(y + offset, values, height=height, color=color, alpha=0.9, label=label)
+        for index, value in enumerate(values):
+            axes[0].text(
+                value + (0.8 if value >= 0 else -0.8),
+                index + offset,
+                f"{value:+.1f}%",
+                ha="left" if value >= 0 else "right",
+                va="center",
+                fontsize=9,
+            )
+    axes[0].axvline(0.0, color="#333333", linewidth=1.1)
+    axes[0].set_xlim(-23, 43)
+    axes[0].set_xlabel("8画像だけの入力に対する誤差変化")
+    axes[0].set_title("共通8画像のpoint map誤差", fontweight="bold")
+    axes[0].set_yticks(y, labels)
+    axes[0].invert_yaxis()
+    axes[0].legend(loc="upper center", bbox_to_anchor=(0.5, -0.20), ncol=1, frameon=False, fontsize=9)
+    axes[0].grid(axis="x", color="#DEDEDE", linewidth=0.7)
+    axes[0].set_axisbelow(True)
+
+    right_series = (
+        (np.array(core_shifts), -height / 1.8, "#6A8FB3", "基準側と重なる5画像"),
+        (np.array(remote_shifts), height / 1.8, "#A76D9D", "基準側と直接ほぼ重ならない2画像"),
     )
+    for values, offset, color, label in right_series:
+        axes[1].barh(y + offset, values, height=height, color=color, alpha=0.9, label=label)
+        for index, value in enumerate(values):
+            axes[1].text(value + 0.06, index + offset, f"{value:.2f}%", ha="left", va="center", fontsize=9)
+    axes[1].set_xlim(0, 3.0)
+    axes[1].set_xlabel("camera撮影範囲の直径に対する3D点変位")
+    axes[1].set_title("別scene画像追加時の3D点変位", fontweight="bold")
+    axes[1].set_yticks(y, labels)
+    axes[1].invert_yaxis()
+    axes[1].legend(loc="upper center", bbox_to_anchor=(0.5, -0.20), ncol=1, frameon=False, fontsize=9)
+    axes[1].grid(axis="x", color="#DEDEDE", linewidth=0.7)
+    axes[1].set_axisbelow(True)
     fig.suptitle(
         "別scene画像を正しく除外できても，除外前の正しい画像の3Dはすでに変化している",
         fontsize=14,
         fontweight="bold",
+        y=0.96,
     )
-    fig.savefig(FIGURES / "shared_output_context_summary.png", bbox_inches="tight")
+    fig.savefig(FIGURES / "shared_output_change_plots.png", bbox_inches="tight")
     plt.close(fig)
 
 
@@ -1032,13 +1000,12 @@ def main() -> None:
             "constraint_output_hypothesis.png",
             "constraint_matched_test.png",
             "filter_qualitative_example.png",
-            "filter_decision_flip.png",
-            "filter_geometry_effect.png",
-            "iterative_filter_example.png",
-            "iterative_filter_all_conditions.png",
-            "distractor_count_summary.png",
+            "filter_score_comparison.png",
+            "filter_geometry_change.png",
+            "iterative_filter_small_multiples.png",
+            "distractor_count_curves.png",
             "projectivity_qualitative_example.png",
-            "shared_output_context_summary.png",
+            "shared_output_change_plots.png",
         ):
             path = FIGURES / name
             assert path.exists() and path.stat().st_size > 10_000, path

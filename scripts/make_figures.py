@@ -18,7 +18,9 @@ os.environ.setdefault("MPLBACKEND", "Agg")
 
 import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
-from matplotlib.patches import FancyArrowPatch, FancyBboxPatch  # noqa: E402
+import matplotlib.patheffects as path_effects  # noqa: E402
+from matplotlib import font_manager  # noqa: E402
+from matplotlib.patches import FancyArrowPatch, FancyBboxPatch, Rectangle  # noqa: E402
 
 
 DATA = ROOT / "data"
@@ -59,6 +61,13 @@ def load_set_filter_results() -> tuple[dict, dict, dict, dict]:
     subset_law = json.loads((DATA / "distractor_subset_law.json").read_text())
     projectivity = json.loads((DATA / "shared_output_projectivity.json").read_text())
     return geometry, cascade, subset_law, projectivity
+
+
+def load_qualitative_results() -> tuple[dict, dict[str, np.ndarray]]:
+    metadata = json.loads((DATA / "qualitative_forest2.json").read_text())
+    with np.load(DATA / "qualitative_forest2.npz", allow_pickle=False) as packet:
+        arrays = {name: packet[name] for name in packet.files}
+    return metadata, arrays
 
 
 def validate(rows: list[dict], summary: dict) -> None:
@@ -134,6 +143,31 @@ def validate_set_filter_results(
     )
 
 
+def validate_qualitative_results(metadata: dict, packet: dict[str, np.ndarray]) -> None:
+    assert metadata["status"] == "complete"
+    assert metadata["scene"] == "gascola_P005"
+    assert metadata["score_threshold"] == 0.4
+    assert packet["mixed_thumbnails"].shape == (12, 168, 224, 3)
+    assert packet["same_scene_thumbnails"].shape == (12, 168, 224, 3)
+    assert packet["remote_rgb"].shape[:2] == packet["distractor_shift_percent"].shape
+    assert packet["remote_rgb"].shape[:2] == packet["redundant_shift_percent"].shape
+    mixed = metadata["conditions"]["distractor_context"]
+    same_scene = metadata["conditions"]["redundant_context"]
+    assert sum(item["rejected"] for item in mixed[:8]) == 0
+    assert sum(item["rejected"] for item in mixed[8:]) == 4
+    assert [item["rejected"] for item in same_scene[6:8]] == [True, True]
+    assert sum(item["rejected"] for item in same_scene) == 2
+    for condition, array_name in (
+        ("distractor_context", "distractor_shift_percent"),
+        ("redundant_context", "redundant_shift_percent"),
+    ):
+        observed = float(np.nanmedian(packet[array_name]))
+        expected = metadata["point_shift_percent_of_camera_diameter"][condition][
+            "median_percent"
+        ]
+        assert math.isclose(observed, expected, rel_tol=1.0e-6)
+
+
 def style() -> None:
     plt.rcParams.update(
         {
@@ -144,6 +178,24 @@ def style() -> None:
             "axes.spines.right": False,
             "figure.dpi": 140,
             "savefig.dpi": 220,
+        }
+    )
+
+
+def japanese_style() -> None:
+    available_fonts = {font.name for font in font_manager.fontManager.ttflist}
+    font_family = next(
+        (
+            name
+            for name in ("Hiragino Sans", "Noto Sans CJK JP", "DejaVu Sans")
+            if name in available_fonts
+        ),
+        "DejaVu Sans",
+    )
+    plt.rcParams.update(
+        {
+            "font.family": font_family,
+            "axes.unicode_minus": False,
         }
     )
 
@@ -173,6 +225,201 @@ def _arrow(ax, start: tuple[float, float], end: tuple[float, float]) -> None:
             color="#4a4a4a",
         )
     )
+
+
+def _result_table(
+    ax,
+    row_labels: list[str],
+    column_labels: list[str],
+    texts: list[list[str]],
+    colors: list[list[str]],
+    title: str,
+) -> None:
+    row_count = len(row_labels)
+    column_count = len(column_labels)
+    ax.set_xlim(-1.05, column_count)
+    ax.set_ylim(-0.2, row_count + 0.72)
+    ax.axis("off")
+    ax.set_title(title, pad=12, fontweight="bold")
+    for column, label in enumerate(column_labels):
+        ax.text(
+            column + 0.5,
+            row_count + 0.34,
+            label,
+            ha="center",
+            va="center",
+            fontsize=9.5,
+            fontweight="bold",
+        )
+    for row, label in enumerate(row_labels):
+        y = row_count - row - 1
+        ax.text(-0.08, y + 0.5, label, ha="right", va="center", fontsize=10)
+        for column in range(column_count):
+            ax.add_patch(
+                Rectangle(
+                    (column + 0.03, y + 0.04),
+                    0.94,
+                    0.92,
+                    facecolor=colors[row][column],
+                    edgecolor="white",
+                    linewidth=2,
+                )
+            )
+            ax.text(
+                column + 0.5,
+                y + 0.5,
+                texts[row][column],
+                ha="center",
+                va="center",
+                fontsize=10,
+                fontweight="bold",
+                color="#222222",
+            )
+
+
+def plot_filter_qualitative(metadata: dict, packet: dict[str, np.ndarray]) -> None:
+    conditions = (
+        ("distractor_context", "mixed_thumbnails"),
+        ("redundant_context", "same_scene_thumbnails"),
+    )
+    row_labels = (
+        "A  別scene画像を4枚追加\n別scene 4/4を除外，正しい8/8を保持",
+        "B  同じsceneの近傍画像を4枚追加\n正しい遠方画像2枚を誤って除外",
+    )
+    fig = plt.figure(figsize=(17.2, 6.0))
+    grid = fig.add_gridspec(
+        3,
+        12,
+        height_ratios=(0.23, 1.0, 1.0),
+        left=0.12,
+        right=0.99,
+        top=0.86,
+        bottom=0.11,
+        hspace=0.34,
+        wspace=0.055,
+    )
+    header = fig.add_subplot(grid[0, :])
+    header.set_xlim(0, 12)
+    header.set_ylim(0, 1)
+    header.axis("off")
+    groups = (
+        (0, 5, "基準画像と大きく重なる5枚", "#DCEAF7"),
+        (5, 6, "両側に\n重なる1枚", "#FBE3C2"),
+        (6, 8, "基準側とは直接ほぼ重ならない正しい2枚", "#DDF1DF"),
+        (8, 12, "比較する4枚だけを変更", "#EEEEEE"),
+    )
+    for start, stop, label, color in groups:
+        header.add_patch(
+            Rectangle(
+                (start + 0.04, 0.04),
+                stop - start - 0.08,
+                0.92,
+                facecolor=color,
+                edgecolor="white",
+                linewidth=2,
+            )
+        )
+        header.text((start + stop) / 2, 0.5, label, ha="center", va="center", fontsize=9)
+
+    for row_index, ((condition, array_name), row_label) in enumerate(
+        zip(conditions, row_labels)
+    ):
+        decisions = metadata["conditions"][condition]
+        for column in range(12):
+            axis = fig.add_subplot(grid[row_index + 1, column])
+            axis.imshow(packet[array_name][column])
+            axis.set_xticks([])
+            axis.set_yticks([])
+            rejected = bool(decisions[column]["rejected"])
+            border = "#D55E00" if rejected else "#009E73"
+            for spine in axis.spines.values():
+                spine.set_visible(True)
+                spine.set_linewidth(3.0)
+                spine.set_color(border)
+            if rejected:
+                mark = axis.text(
+                    0.5,
+                    0.52,
+                    "×",
+                    transform=axis.transAxes,
+                    ha="center",
+                    va="center",
+                    color="#D55E00",
+                    fontsize=39,
+                    fontweight="bold",
+                )
+                mark.set_path_effects(
+                    [path_effects.Stroke(linewidth=4.0, foreground="white"), path_effects.Normal()]
+                )
+            axis.text(
+                0.5,
+                -0.08,
+                f"score {decisions[column]['score']:.2f}",
+                transform=axis.transAxes,
+                ha="center",
+                va="top",
+                fontsize=7.3,
+                color="#D55E00" if rejected else "#333333",
+            )
+            if column == 0:
+                axis.text(
+                    -0.22,
+                    0.5,
+                    row_label,
+                    transform=axis.transAxes,
+                    ha="right",
+                    va="center",
+                    fontsize=9.5,
+                    fontweight="bold",
+                )
+    fig.suptitle(
+        "同じ正しい8枚でも，残り4枚を変えると画像除外の判定が反転する",
+        y=0.97,
+        fontsize=15,
+        fontweight="bold",
+    )
+    fig.text(
+        0.56,
+        0.025,
+        "緑枠＝保持，赤枠と×＝棄却．公開設定ではscoreが0.4未満の画像を除外する．",
+        ha="center",
+        fontsize=9.5,
+    )
+    fig.savefig(FIGURES / "filter_qualitative_example.png", bbox_inches="tight")
+    plt.close(fig)
+
+
+def plot_projectivity_qualitative(metadata: dict, packet: dict[str, np.ndarray]) -> None:
+    distractor = packet["distractor_shift_percent"]
+    redundant = packet["redundant_shift_percent"]
+    limit = 10.0
+    fig, axes = plt.subplots(1, 3, figsize=(13.8, 4.4), constrained_layout=True)
+    axes[0].imshow(packet["remote_rgb"])
+    axes[0].set_title("共通する同じ遠方画像")
+    image = axes[1].imshow(distractor, cmap="magma", vmin=0.0, vmax=limit)
+    axes[1].set_title(
+        "別scene画像4枚を追加\npoint map変位の中央値 3.28%",
+        color="#A33B00",
+    )
+    axes[2].imshow(redundant, cmap="magma", vmin=0.0, vmax=limit)
+    axes[2].set_title(
+        "同じsceneの近傍画像4枚を追加\npoint map変位の中央値 1.51%",
+        color="#005A8D",
+    )
+    for axis in axes:
+        axis.set_xticks([])
+        axis.set_yticks([])
+        for spine in axis.spines.values():
+            spine.set_visible(False)
+    colorbar = fig.colorbar(image, ax=axes[1:], fraction=0.035, pad=0.025)
+    colorbar.set_label("同じpixelの予測3D点の変位 / camera撮影範囲の直径（%）\n10%より大きい値は同じ色で表示")
+    fig.suptitle(
+        "除外前の同じVGGT推論では，正しい画像の3D出力もcontextで変わる",
+        fontsize=14,
+        fontweight="bold",
+    )
+    fig.savefig(FIGURES / "projectivity_qualitative_example.png", bbox_inches="tight")
+    plt.close(fig)
 
 
 def plot_experiment_design() -> None:
@@ -427,163 +674,133 @@ def plot_constraint_matched_test() -> None:
 
 def plot_set_relative_filter_geometry(geometry: dict) -> None:
     rows = geometry["rows"]
-    labels = [row["scene"].replace("_", " ") for row in rows]
-    fig, axes = plt.subplots(1, 3, figsize=(18, 5))
-
-    roles = ("connector", "extension_center", "extension")
-    markers = {"connector": "o", "extension_center": "s", "extension": "^"}
-    x = np.arange(len(rows), dtype=float)
-    for role in roles:
-        with_distractors = []
-        all_valid = []
-        for row in rows:
-            shared = next(item for item in row["shared_source_views"] if item["role"] == role)
-            with_distractors.append(shared["score_with_distractors"])
-            all_valid.append(shared["score_all_valid"])
-        axes[0].scatter(x - 0.08, with_distractors, marker=markers[role], label=f"{role}: distractors")
-        axes[0].scatter(
-            x + 0.08,
-            all_valid,
-            marker=markers[role],
-            facecolors="none",
-            label=f"{role}: all valid",
-        )
-        for index in range(len(rows)):
-            axes[0].plot(
-                [x[index] - 0.08, x[index] + 0.08],
-                [with_distractors[index], all_valid[index]],
-                color="0.75",
-            )
-    axes[0].axhline(0.4, color="black", linestyle="--", linewidth=1)
-    axes[0].set_xticks(x, labels, rotation=25, ha="right")
-    axes[0].set_ylim(-0.02, 1.02)
-    axes[0].set_ylabel("View score")
-    axes[0].set_title("Removing distractors rejects valid frontier views")
-    axes[0].legend(fontsize=7, ncol=2, frameon=False)
-
-    observed_extension = []
-    same_forward_valid_only = []
-    actual_all_valid = []
+    scene_labels = ("森林 1", "森林 2", "病院 1", "病院 2")
+    columns = (
+        "別scene画像を\n4枚追加",
+        "同じsceneの近傍画像を\n4枚追加",
+    )
+    decision_texts = []
+    decision_colors = []
+    geometry_texts = []
+    geometry_colors = []
     for row in rows:
-        counterfactual = [
-            item
-            for item in row["same_forward_counterfactual"]
-            if item["role"] in {"extension_center", "extension"}
-        ]
-        shared = [
+        remote = [
             item
             for item in row["shared_source_views"]
             if item["role"] in {"extension_center", "extension"}
         ]
-        observed_extension.append(
-            float(np.mean([item["observed_score_with_distractors"] for item in counterfactual]))
+        mixed_score = float(np.mean([item["score_with_distractors"] for item in remote]))
+        same_score = float(np.mean([item["score_all_valid"] for item in remote]))
+        mixed_retained = sum(not item["rejected_with_distractors"] for item in remote)
+        same_retained = sum(not item["rejected_all_valid"] for item in remote)
+        decision_texts.append(
+            [
+                f"score {mixed_score:.2f}\n{mixed_retained}/2枚を保持",
+                f"score {same_score:.2f}\n{same_retained}/2枚を保持",
+            ]
         )
-        same_forward_valid_only.append(
-            float(np.mean([item["valid_only_score_same_forward"] for item in counterfactual]))
+        decision_colors.append(
+            ["#D8EFE2" if mixed_retained == 2 else "#F6D9D5", "#D8EFE2" if same_retained == 2 else "#F6D9D5"]
         )
-        actual_all_valid.append(float(np.mean([item["score_all_valid"] for item in shared])))
-    width = 0.25
-    axes[1].bar(x - width, observed_extension, width, label="observed with distractors")
-    axes[1].bar(x, same_forward_valid_only, width, label="same raw scores, valid-only min-max")
-    axes[1].bar(x + width, actual_all_valid, width, label="actual all-valid forward")
-    axes[1].axhline(0.4, color="black", linestyle="--", linewidth=1)
-    axes[1].set_xticks(x, labels, rotation=25, ha="right")
-    axes[1].set_ylim(0.0, 0.75)
-    axes[1].set_ylabel("Mean extension score")
-    axes[1].set_title("Min-max calibration alone is sufficient")
-    axes[1].legend(fontsize=7, frameon=False)
+        deltas = (
+            100.0 * row["geometry"]["base_anchor_reference"]["filtering_delta"],
+            100.0 * row["geometry"]["all_valid"]["filtering_delta"],
+        )
+        geometry_texts.append(
+            [
+                f"{value:+.1f} point\n{'改善' if value > 0.5 else '悪化' if value < -0.5 else 'ほぼ不変'}"
+                for value in deltas
+            ]
+        )
+        geometry_colors.append(
+            ["#D8EFE2" if value > 0.5 else "#F6D9D5" if value < -0.5 else "#F8EDC8" for value in deltas]
+        )
 
-    distractor_delta = [
-        row["geometry"]["base_anchor_reference"]["filtering_delta"] for row in rows
-    ]
-    all_valid_delta = [row["geometry"]["all_valid"]["filtering_delta"] for row in rows]
-    axes[2].bar(x - 0.18, distractor_delta, 0.36, label="filter distractor set")
-    axes[2].bar(x + 0.18, all_valid_delta, 0.36, label="filter all-valid set")
-    axes[2].axhline(0.0, color="black", linewidth=1)
-    axes[2].set_xticks(x, labels, rotation=25, ha="right")
-    axes[2].set_ylabel("Held-out completeness change")
-    axes[2].set_title("Filtering clean sets is consistently more harmful")
-    axes[2].legend(fontsize=8, frameon=False)
-
-    fig.tight_layout()
+    fig, axes = plt.subplots(1, 2, figsize=(13.5, 5.0), constrained_layout=True)
+    _result_table(
+        axes[0],
+        list(scene_labels),
+        list(columns),
+        decision_texts,
+        decision_colors,
+        "同じ遠方2画像の判定",
+    )
+    _result_table(
+        axes[1],
+        list(scene_labels),
+        list(columns),
+        geometry_texts,
+        geometry_colors,
+        "除外前後の3D completeness変化",
+    )
+    fig.suptitle(
+        "最後の4枚だけを変えると，同じ正しい遠方画像の判定と3D結果が反転する",
+        fontsize=14,
+        fontweight="bold",
+    )
     fig.savefig(FIGURES / "set_relative_filter_geometry.png", bbox_inches="tight")
     plt.close(fig)
 
 
 def plot_iterative_filter_cascade(cascade: dict) -> None:
     chains = cascade["chains"]
-    fig, axes = plt.subplots(1, 3, figsize=(18, 5))
-    colors = {
-        "gascola_P003": "#1f77b4",
-        "gascola_P005": "#17becf",
-        "hospital_P000": "#ff7f0e",
-        "hospital_P003": "#d62728",
-    }
-    for row in chains:
-        x = [item["round"] for item in row["rounds"]]
-        y = [item["input_count"] for item in row["rounds"]]
-        y.append(row["rounds"][-1]["survivor_count"])
-        x.append(x[-1] + 1)
-        linestyle = "-" if row["condition"] == "base_anchor_reference" else "--"
-        condition = "distractors" if linestyle == "-" else "all valid"
-        label = f"{row['scene'].replace('_', ' ')} / {condition}"
-        axes[0].step(
-            x,
-            y,
-            where="post",
-            color=colors[row["scene"]],
-            linestyle=linestyle,
-            marker="o",
-            label=label,
-        )
-    axes[0].set_xlabel("Filter application")
-    axes[0].set_ylabel("Remaining views")
-    axes[0].set_ylim(0, 13)
-    axes[0].set_title("Repeated filtering does not stop after cleanup")
-    axes[0].legend(fontsize=7, ncol=2, frameon=False)
-
-    categories = ("distractor", "extension", "connector", "core / redundant")
-    category_colors = ("#d62728", "#2ca02c", "#ff7f0e", "#6baed6")
-    max_round = max(max(item["round"] for item in row["rounds"]) for row in chains)
-    counts = np.zeros((len(categories), max_round + 1), dtype=np.int64)
-    for row in chains:
-        for item in row["rounds"]:
-            for role in item["rejected_roles"]:
-                if role == "distractor":
-                    category = 0
-                elif role in {"extension_center", "extension"}:
-                    category = 1
-                elif role == "connector":
-                    category = 2
-                else:
-                    category = 3
-                counts[category, item["round"]] += 1
-    bottom = np.zeros(max_round + 1, dtype=np.int64)
-    for category, color, values in zip(categories, category_colors, counts):
-        axes[1].bar(range(max_round + 1), values, bottom=bottom, label=category, color=color)
-        bottom += values
-    axes[1].set_xlabel("Filter application")
-    axes[1].set_ylabel("Views newly rejected across eight chains")
-    axes[1].set_title("The identity of the outlier moves inward")
-    axes[1].legend(fontsize=8, frameon=False)
-
-    labels = [
-        f"{row['scene'].replace('_', ' ')}\n"
-        f"{'distractors' if row['condition'] == 'base_anchor_reference' else 'all valid'}"
+    example = next(
+        row
         for row in chains
-    ]
-    final_count = [row["final_survivor_count"] for row in chains]
-    starting_valid = [8 if row["condition"] == "base_anchor_reference" else 12 for row in chains]
-    x = np.arange(len(chains))
-    axes[2].bar(x, starting_valid, color="0.85", label="valid views at start")
-    axes[2].bar(x, final_count, color="#4c78a8", label="fixed-point survivors")
-    axes[2].set_xticks(x, labels, rotation=45, ha="right", fontsize=7)
-    axes[2].set_ylabel("View count")
-    axes[2].set_ylim(0, 13)
-    axes[2].set_title("The fixed point retains only 2–3 views")
-    axes[2].legend(fontsize=8, frameon=False)
-
-    fig.tight_layout()
+        if row["scene"] == "gascola_P003" and row["condition"] == "base_anchor_reference"
+    )
+    assert [item["survivor_count"] for item in example["rounds"]] == [8, 6, 4, 2, 2]
+    fig, axis = plt.subplots(figsize=(14.5, 5.1))
+    axis.set_xlim(0, 1)
+    axis.set_ylim(0, 1)
+    axis.axis("off")
+    x_positions = (0.015, 0.225, 0.435, 0.645, 0.855)
+    stage_texts = (
+        "入力\n12枚",
+        "1回目後\n8枚",
+        "2回目後\n6枚",
+        "3回目後\n4枚",
+        "4回目後\n2枚で安定",
+    )
+    stage_colors = ("#EEEEEE", "#E2EEF7", "#F8E0DB", "#F8E0DB", "#F8E0DB")
+    for x, text, color in zip(x_positions, stage_texts, stage_colors):
+        _box(axis, x, 0.51, 0.13, 0.18, text, color, fontsize=11)
+    arrow_labels = (
+        ("別scene画像4枚\nを正しく除外", "#333333"),
+        ("正しい遠方画像2枚\nを誤って除外", "#B43C2D"),
+        ("正しい基準側画像2枚\nを誤って除外", "#B43C2D"),
+        ("両側に重なる正しい画像と\n基準側画像を誤って除外", "#B43C2D"),
+    )
+    for index, (label, color) in enumerate(arrow_labels):
+        start = (x_positions[index] + 0.132, 0.60)
+        end = (x_positions[index + 1] - 0.004, 0.60)
+        _arrow(axis, start, end)
+        axis.text(
+            (start[0] + end[0]) / 2,
+            0.73 if index != 3 else 0.75,
+            label,
+            ha="center",
+            va="bottom",
+            fontsize=8.7,
+            color=color,
+            fontweight="bold" if color != "#333333" else "normal",
+        )
+    _box(
+        axis,
+        0.12,
+        0.10,
+        0.76,
+        0.18,
+        "4画像系列×2入力条件の8/8条件で，1回目の後も新しい正しい画像が除外された．\n5〜7回で安定し，最終的に残ったのは12枚中2〜3枚だった．",
+        "#FFF3D6",
+        fontsize=11,
+    )
+    axis.set_title(
+        "同じ除外処理を残った画像へ繰り返すと，棄却対象が正しい画像へ移る\n（代表例：森林1，別scene画像を含む入力）",
+        fontsize=14,
+        fontweight="bold",
+        pad=18,
+    )
     fig.savefig(FIGURES / "iterative_filter_cascade.png", bbox_inches="tight")
     plt.close(fig)
 
@@ -591,213 +808,134 @@ def plot_iterative_filter_cascade(cascade: dict) -> None:
 def plot_distractor_subset_law(results: dict) -> None:
     scene_order = ("gascola_P003", "gascola_P005", "hospital_P000", "hospital_P003")
     scene_labels = {
-        "gascola_P003": "Forest 1",
-        "gascola_P005": "Forest 2",
-        "hospital_P000": "Hospital 1",
-        "hospital_P003": "Hospital 2",
+        "gascola_P003": "森林 1",
+        "gascola_P005": "森林 2",
+        "hospital_P000": "病院 1",
+        "hospital_P003": "病院 2",
     }
-    colors = {
-        "gascola_P003": "#0072B2",
-        "gascola_P005": "#56B4E9",
-        "hospital_P000": "#D55E00",
-        "hospital_P003": "#CC79A7",
-    }
-    fig, axes = plt.subplots(1, 3, figsize=(17.5, 5.2), gridspec_kw={"width_ratios": [1.05, 1.25, 1.0]})
-
+    texts = []
+    colors = []
     for scene in scene_order:
-        summary = results["scenes"][scene]
         fractions = [
-            summary["by_distractor_count"][str(count)]["both_retained_fraction"]
+            results["scenes"][scene]["by_distractor_count"][str(count)][
+                "both_retained_fraction"
+            ]
             for count in range(5)
         ]
-        axes[0].plot(
-            range(5),
-            fractions,
-            marker="o",
-            linewidth=2.1,
-            color=colors[scene],
-            label=scene_labels[scene],
-        )
-    axes[0].plot(
-        range(5),
-        [0.0] * 5,
-        color="black",
-        linestyle="--",
-        linewidth=1.4,
-        label="same forwards, valid-only calibration",
-    )
-    axes[0].set_xticks(range(5))
-    axes[0].set_ylim(-0.05, 1.05)
-    axes[0].set_xlabel("Number of distractors among four candidates")
-    axes[0].set_ylabel("Fraction retaining both frontier views")
-    axes[0].set_title("(a) More distractors usually rescue valid views")
-    axes[0].grid(alpha=0.25)
-    axes[0].legend(frameon=False, fontsize=7.5, loc="center right")
-
-    offsets = np.linspace(-0.18, 0.18, len(scene_order))
-    for offset, scene in zip(offsets, scene_order):
-        for row in results["scenes"][scene]["subset_results"]:
-            marker = "o" if row["both_extensions_retained"] else "x"
-            axes[1].scatter(
-                row["distractor_count"] + offset,
-                row["mean_extension_score"],
-                marker=marker,
-                color=colors[scene],
-                s=37,
-                alpha=0.85,
-            )
-    axes[1].axhline(0.4, color="black", linestyle="--", linewidth=1.2)
-    axes[1].set_xticks(range(5))
-    axes[1].set_ylim(-0.02, 0.66)
-    axes[1].set_xlabel("Number of distractors among four candidates")
-    axes[1].set_ylabel("Mean score of the two frontier views")
-    axes[1].set_title("(b) Identity still matters near the threshold")
-    axes[1].grid(axis="y", alpha=0.25)
-    axes[1].text(
-        0.03,
-        0.96,
-        "circle: both retained   ×: at least one rejected",
-        transform=axes[1].transAxes,
-        va="top",
-        fontsize=8,
-    )
-
-    effects = np.asarray(
-        [
+        texts.append([f"{100.0 * value:.0f}%" for value in fractions])
+        colors.append(
             [
-                item["mean_paired_extension_score_change"]
-                for item in results["scenes"][scene]["slot_effects"]
+                "#D8EFE2" if value >= 0.999 else "#F8EDC8" if value > 0 else "#F6D9D5"
+                for value in fractions
             ]
-            for scene in scene_order
-        ]
+        )
+    fig, axes = plt.subplots(
+        1,
+        2,
+        figsize=(13.8, 4.8),
+        gridspec_kw={"width_ratios": (1.45, 0.8)},
+        constrained_layout=True,
     )
-    limit = max(float(np.max(np.abs(effects))), 1.0e-6)
-    image = axes[2].imshow(effects, cmap="RdBu_r", vmin=-limit, vmax=limit, aspect="auto")
-    axes[2].set_xticks(range(4), [f"candidate {index}" for index in range(1, 5)])
-    axes[2].set_yticks(range(4), [scene_labels[scene] for scene in scene_order])
-    axes[2].set_title("(c) Paired effect of distractor identity")
-    for row_index in range(4):
-        for column_index in range(4):
-            axes[2].text(
-                column_index,
-                row_index,
-                f"{effects[row_index, column_index]:+.3f}",
-                ha="center",
-                va="center",
-                fontsize=9,
-            )
-    fig.colorbar(image, ax=axes[2], label="Change in mean frontier-view score", fraction=0.047)
-
+    _result_table(
+        axes[0],
+        [scene_labels[scene] for scene in scene_order],
+        [f"{count}枚" for count in range(5)],
+        texts,
+        colors,
+        "遠方2画像をともに保持した組合せの割合",
+    )
+    axes[1].set_xlim(0, 1)
+    axes[1].set_ylim(0, 1)
+    axes[1].axis("off")
+    _box(
+        axes[1],
+        0.08,
+        0.66,
+        0.84,
+        0.20,
+        "主効果は枚数\n別scene画像の枚数だけでscore変動の平均93%を説明",
+        "#E2EEF7",
+        fontsize=10.5,
+    )
+    _box(
+        axes[1],
+        0.08,
+        0.39,
+        0.84,
+        0.20,
+        "ただし画像の選び方も効く\n同じ枚数でも，保持する組合せと棄却する組合せが存在",
+        "#FFF3D6",
+        fontsize=10.5,
+    )
+    _box(
+        axes[1],
+        0.08,
+        0.12,
+        0.84,
+        0.20,
+        "scoreの尺度決めが必要\n救済した44条件は，再正規化だけで44→0条件へ消失",
+        "#F6D9D5",
+        fontsize=10.5,
+    )
     fig.suptitle(
-        "Valid-view rescue is a set-relative calibration effect, not a one-image rule",
-        y=1.02,
+        "別scene画像が増えるほど正しい遠方画像は保持されやすいが，枚数だけでは決まらない",
         fontsize=14,
+        fontweight="bold",
     )
-    fig.tight_layout()
     fig.savefig(FIGURES / "distractor_subset_law.png", bbox_inches="tight")
     plt.close(fig)
 
 
 def plot_shared_output_projectivity(results: dict) -> None:
-    labels = ("Forest 1", "Forest 2", "Hospital 1", "Hospital 2")
+    labels = ("森林 1", "森林 2", "病院 1", "病院 2")
     rows = results["scenes"]
-    x = np.arange(4, dtype=float)
-    width = 0.35
-    distractor_color = "#D55E00"
-    redundant_color = "#0072B2"
-    fig, axes = plt.subplots(1, 3, figsize=(15.5, 4.7))
-
-    distractor_shift = [
-        100.0
-        * row["comparisons_to_common_only"]["distractor_context"][
+    error_texts = []
+    error_colors = []
+    role_texts = []
+    role_colors = []
+    for row in rows:
+        error_values = (
+            100.0 * row["point_error_relative_change"]["distractor_context"],
+            100.0 * row["point_error_relative_change"]["redundant_context"],
+        )
+        error_texts.append(
+            [
+                f"{value:+.1f}%\n{'悪化' if value > 0 else '改善'}"
+                for value in error_values
+            ]
+        )
+        error_colors.append(
+            ["#F6D9D5" if value > 0 else "#D8EFE2" for value in error_values]
+        )
+        comparison = row["comparisons_to_common_only"]["distractor_context"][
             "point_shift_fraction_of_camera_diameter"
-        ]["all_shared"]["median"]
-        for row in rows
-    ]
-    redundant_shift = [
-        100.0
-        * row["comparisons_to_common_only"]["redundant_context"][
-            "point_shift_fraction_of_camera_diameter"
-        ]["all_shared"]["median"]
-        for row in rows
-    ]
-    axes[0].bar(
-        x - width / 2,
-        distractor_shift,
-        width,
-        color=distractor_color,
-        label="other-scene distractors",
-    )
-    axes[0].bar(
-        x + width / 2,
-        redundant_shift,
-        width,
-        color=redundant_color,
-        label="same-scene redundant",
-    )
-    axes[0].axhline(1.0, color="black", linestyle="--", linewidth=1)
-    axes[0].set_ylabel("Median shared point shift (% camera diameter)")
-    axes[0].set_title("(a) Distractors move shared point maps more")
-    axes[0].legend(frameon=False, fontsize=8)
+        ]
+        role_values = (100.0 * comparison["core"]["median"], 100.0 * comparison["extension"]["median"])
+        role_texts.append([f"{value:.2f}%" for value in role_values])
+        role_colors.append(["#E2EEF7", "#F4DCEB"])
 
-    core_shift = [
-        100.0
-        * row["comparisons_to_common_only"]["distractor_context"][
-            "point_shift_fraction_of_camera_diameter"
-        ]["core"]["median"]
-        for row in rows
-    ]
-    extension_shift = [
-        100.0
-        * row["comparisons_to_common_only"]["distractor_context"][
-            "point_shift_fraction_of_camera_diameter"
-        ]["extension"]["median"]
-        for row in rows
-    ]
-    axes[1].bar(
-        x - width / 2, core_shift, width, color="#999999", label="core-side views"
+    fig, axes = plt.subplots(1, 2, figsize=(13.5, 5.0), constrained_layout=True)
+    _result_table(
+        axes[0],
+        list(labels),
+        ["別scene画像を\n4枚追加", "同じsceneの近傍画像を\n4枚追加"],
+        error_texts,
+        error_colors,
+        "共通8画像のpoint map誤差の変化",
     )
-    axes[1].bar(
-        x + width / 2, extension_shift, width, color="#CC79A7", label="frontier views"
+    _result_table(
+        axes[1],
+        list(labels),
+        ["基準画像と重なる\n5画像", "基準側と直接ほぼ\n重ならない2画像"],
+        role_texts,
+        role_colors,
+        "別scene画像追加時の3D点の変位",
     )
-    axes[1].set_ylabel("Median point shift (% camera diameter)")
-    axes[1].set_title("(b) The frontier changes more than the core")
-    axes[1].legend(frameon=False, fontsize=8)
-
-    distractor_error = [
-        100.0 * row["point_error_relative_change"]["distractor_context"] for row in rows
-    ]
-    redundant_error = [
-        100.0 * row["point_error_relative_change"]["redundant_context"] for row in rows
-    ]
-    axes[2].bar(
-        x - width / 2,
-        distractor_error,
-        width,
-        color=distractor_color,
-        label="other-scene distractors",
-    )
-    axes[2].bar(
-        x + width / 2,
-        redundant_error,
-        width,
-        color=redundant_color,
-        label="same-scene redundant",
-    )
-    axes[2].axhline(0.0, color="black", linewidth=1)
-    axes[2].set_ylabel("Change in shared point error to ground truth (%)")
-    axes[2].set_title("(c) Distractors worsen accuracy in all four scenes")
-    axes[2].legend(frameon=False, fontsize=8)
-
-    for axis in axes:
-        axis.set_xticks(x, labels, rotation=20, ha="right")
-        axis.grid(axis="y", alpha=0.25)
     fig.suptitle(
-        "Correctly rejected distractors still perturb VGGT's valid-view geometry",
-        y=1.02,
+        "別scene画像を正しく除外できても，除外前の正しい画像の3Dはすでに変化している",
         fontsize=14,
+        fontweight="bold",
     )
-    fig.tight_layout()
     fig.savefig(FIGURES / "shared_output_projectivity.png", bbox_inches="tight")
     plt.close(fig)
 
@@ -812,10 +950,12 @@ def main() -> None:
     rows = load_csv()
     summary = load_summary()
     set_filter_geometry, iterative_filter, subset_law, projectivity = load_set_filter_results()
+    qualitative_metadata, qualitative_packet = load_qualitative_results()
     validate(rows, summary)
     validate_set_filter_results(
         set_filter_geometry, iterative_filter, subset_law, projectivity
     )
+    validate_qualitative_results(qualitative_metadata, qualitative_packet)
     style()
     plot_experiment_design()
     plot_dvlt(rows)
@@ -823,9 +963,12 @@ def main() -> None:
     plot_correspondence_diagnostics(summary)
     plot_constraint_output_hypothesis()
     plot_constraint_matched_test()
+    japanese_style()
+    plot_filter_qualitative(qualitative_metadata, qualitative_packet)
     plot_set_relative_filter_geometry(set_filter_geometry)
     plot_iterative_filter_cascade(iterative_filter)
     plot_distractor_subset_law(subset_law)
+    plot_projectivity_qualitative(qualitative_metadata, qualitative_packet)
     plot_shared_output_projectivity(projectivity)
 
     if args.check:
@@ -836,9 +979,11 @@ def main() -> None:
             "correspondence_diagnostics.png",
             "constraint_output_hypothesis.png",
             "constraint_matched_test.png",
+            "filter_qualitative_example.png",
             "set_relative_filter_geometry.png",
             "iterative_filter_cascade.png",
             "distractor_subset_law.png",
+            "projectivity_qualitative_example.png",
             "shared_output_projectivity.png",
         ):
             path = FIGURES / name

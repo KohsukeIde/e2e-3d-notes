@@ -1,0 +1,231 @@
+{
+  "camera_diameter_m": 16.89016003696124,
+  "conditions": {
+    "distractor_context": [
+      {
+        "frame_index": "1200",
+        "index": 0,
+        "label": "clean",
+        "rejected": false,
+        "role": "anchor",
+        "score": 0.9992779893961985
+      },
+      {
+        "frame_index": "1140",
+        "index": 1,
+        "label": "clean",
+        "rejected": false,
+        "role": "core",
+        "score": 0.873105726564171
+      },
+      {
+        "frame_index": "1160",
+        "index": 2,
+        "label": "clean",
+        "rejected": false,
+        "role": "core",
+        "score": 0.94002865151732
+      },
+      {
+        "frame_index": "1190",
+        "index": 3,
+        "label": "clean",
+        "rejected": false,
+        "role": "redundant_core",
+        "score": 0.8963257254212529
+      },
+      {
+        "frame_index": "1180",
+        "index": 4,
+        "label": "clean",
+        "rejected": false,
+        "role": "redundant_core",
+        "score": 0.8818731090112806
+      },
+      {
+        "frame_index": "1220",
+        "index": 5,
+        "label": "bridge",
+        "rejected": false,
+        "role": "connector",
+        "score": 0.8699312895636115
+      },
+      {
+        "frame_index": "1240",
+        "index": 6,
+        "label": "bridge",
+        "rejected": false,
+        "role": "extension_center",
+        "score": 0.5320331655120891
+      },
+      {
+        "frame_index": "1300",
+        "index": 7,
+        "label": "bridge",
+        "rejected": false,
+        "role": "extension",
+        "score": 0.48211434406501197
+      },
+      {
+        "frame_index": "0",
+        "index": 8,
+        "label": "distractor",
+        "rejected": true,
+        "role": "distractor",
+        "score": 0.0
+      },
+      {
+        "frame_index": "187",
+        "index": 9,
+        "label": "distractor",
+        "rejected": true,
+        "role": "distractor",
+        "score": 0.08885726064775132
+      },
+      {
+        "frame_index": "374",
+        "index": 10,
+        "label": "distractor",
+        "rejected": true,
+        "role": "distractor",
+        "score": 0.16553563351344142
+      },
+      {
+        "frame_index": "562",
+        "index": 11,
+        "label": "distractor",
+        "rejected": true,
+        "role": "distractor",
+        "score": 0.10647178155898479
+      }
+    ],
+    "redundant_context": [
+      {
+        "frame_index": "1200",
+        "index": 0,
+        "label": "clean",
+        "rejected": false,
+        "role": "anchor",
+        "score": 0.9990192214594932
+      },
+      {
+        "frame_index": "1140",
+        "index": 1,
+        "label": "clean",
+        "rejected": false,
+        "role": "core",
+        "score": 0.7090380756113316
+      },
+      {
+        "frame_index": "1160",
+        "index": 2,
+        "label": "clean",
+        "rejected": false,
+        "role": "core",
+        "score": 0.8663625175880658
+      },
+      {
+        "frame_index": "1190",
+        "index": 3,
+        "label": "clean",
+        "rejected": false,
+        "role": "redundant_core",
+        "score": 0.8741432887179462
+      },
+      {
+        "frame_index": "1180",
+        "index": 4,
+        "label": "clean",
+        "rejected": false,
+        "role": "redundant_core",
+        "score": 0.8491484475245802
+      },
+      {
+        "frame_index": "1220",
+        "index": 5,
+        "label": "bridge",
+        "rejected": false,
+        "role": "connector",
+        "score": 0.7692916569204153
+      },
+      {
+        "frame_index": "1240",
+        "index": 6,
+        "label": "bridge",
+        "rejected": true,
+        "role": "extension_center",
+        "score": 0.1653155986499637
+      },
+      {
+        "frame_index": "1300",
+        "index": 7,
+        "label": "bridge",
+        "rejected": true,
+        "role": "extension",
+        "score": 0.0
+      },
+      {
+        "frame_index": "1170",
+        "index": 8,
+        "label": "clean",
+        "rejected": false,
+        "role": "redundant_core",
+        "score": 0.8597456444183293
+      },
+      {
+        "frame_index": "1210",
+        "index": 9,
+        "label": "clean",
+        "rejected": false,
+        "role": "redundant_core",
+        "score": 0.9172465483392369
+      },
+      {
+        "frame_index": "1150",
+        "index": 10,
+        "label": "clean",
+        "rejected": false,
+        "role": "redundant_core",
+        "score": 0.8008925395204609
+      },
+      {
+        "frame_index": "1130",
+        "index": 11,
+        "label": "clean",
+        "rejected": false,
+        "role": "redundant_core",
+        "score": 0.690407675941975
+      }
+    ]
+  },
+  "context_view_count": 4,
+  "dataset": "TartanAir",
+  "packet_sha256": "ef8aad172118919cdcbba190ab7bfa3ecea3969cf27cd7150efc933393127682",
+  "point_shift_percent_of_camera_diameter": {
+    "distractor_context": {
+      "median_percent": 3.2799072438715777,
+      "p90_percent": 8.391532370317663
+    },
+    "redundant_context": {
+      "median_percent": 1.5052664250183854,
+      "p90_percent": 4.054047622701938
+    }
+  },
+  "scene": "gascola_P005",
+  "schema_version": 1,
+  "score_threshold": 0.4,
+  "selected_remote_view": {
+    "frame_index": "1300",
+    "role": "extension",
+    "selection_rule": "larger median point shift under distractor context among the two remote views",
+    "shared_index": 7
+  },
+  "shared_view_count": 8,
+  "source_hashes": {
+    "distractor_context/predictions_first_forward.npz": "8effeaa17338e89799ec709a07c4286ae9a22fa59b890d2a1889f303e8d01b84",
+    "distractor_context/scores.json": "288e43948e1d530ad3fca575ac1042d678fcfb17eeec542fb231daef26906c4d",
+    "redundant_context/predictions_first_forward.npz": "808739b70665b08de761756b377a0af0e80b909fdc886c010d7ff7fe2b0fc95f",
+    "redundant_context/scores.json": "6465edb71e421db5af420b94df0dfea3b2f36974f32772b5ef8411a47e2d7700"
+  },
+  "status": "complete"
+}

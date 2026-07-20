@@ -1,0 +1,637 @@
+{
+  "evidence": "local_experiment",
+  "known_answer_controls": {
+    "analytic_replacement_maximum_px_on_real_outputs": 0.0,
+    "maximum_primary_change_after_confidence_swap": 0.0,
+    "minimum_detected_planted_offset_px_on_real_outputs": 32.68844316136841,
+    "overall_pass": true,
+    "seed_count": 3,
+    "synthetic_case_count": 51
+  },
+  "measurement": {
+    "confidence_used_in_measurement_or_selection": false,
+    "gap_between_3d_outputs": "pixel distance between the target positions implied by depth+camera and by the direct 3D point",
+    "posthoc_visibility_domain": "pairs independently marked visible by TartanAir depth and camera ground truth",
+    "primary_domain": "all non-reference query-target pairs with finite projections and positive depth",
+    "tracking_head_extra_mismatch": "pixel distance from the tracking-head prediction to the closed segment joining the two positions implied by 3D outputs"
+  },
+  "paired_acquisition_effects": [
+    {
+      "same_minus_independent_noise": {
+        "gap_between_3d_outputs_px": 0.02484839576740594,
+        "ordinary_tracking_error_px": 0.03312075741511328,
+        "tracking_confidence": 0.0,
+        "tracking_head_extra_mismatch_px": 0.06496469179289488
+      },
+      "scene": "gascola_P003",
+      "scene_label": "Gascola 1",
+      "seed": 17,
+      "view_position_count": 2
+    },
+    {
+      "same_minus_independent_noise": {
+        "gap_between_3d_outputs_px": 0.07414800581528613,
+        "ordinary_tracking_error_px": 0.07304864960970203,
+        "tracking_confidence": 0.0,
+        "tracking_head_extra_mismatch_px": 0.06806066524704268
+      },
+      "scene": "gascola_P003",
+      "scene_label": "Gascola 1",
+      "seed": 29,
+      "view_position_count": 2
+    },
+    {
+      "same_minus_independent_noise": {
+        "gap_between_3d_outputs_px": -0.09168398826959323,
+        "ordinary_tracking_error_px": -0.0896660897973699,
+        "tracking_confidence": 0.0,
+        "tracking_head_extra_mismatch_px": 0.09433433796870161
+      },
+      "scene": "gascola_P003",
+      "scene_label": "Gascola 1",
+      "seed": 43,
+      "view_position_count": 2
+    },
+    {
+      "same_minus_independent_noise": {
+        "gap_between_3d_outputs_px": -0.02613958148313511,
+        "ordinary_tracking_error_px": -0.030698923368604247,
+        "tracking_confidence": -0.0011749267578125,
+        "tracking_head_extra_mismatch_px": 1.1047062893867352
+      },
+      "scene": "gascola_P003",
+      "scene_label": "Gascola 1",
+      "seed": 17,
+      "view_position_count": 4
+    },
+    {
+      "same_minus_independent_noise": {
+        "gap_between_3d_outputs_px": 0.0702902886729353,
+        "ordinary_tracking_error_px": 0.09485336027598507,
+        "tracking_confidence": -0.001922607421875,
+        "tracking_head_extra_mismatch_px": -0.10439230808782796
+      },
+      "scene": "gascola_P003",
+      "scene_label": "Gascola 1",
+      "seed": 29,
+      "view_position_count": 4
+    },
+    {
+      "same_minus_independent_noise": {
+        "gap_between_3d_outputs_px": -0.03057916481746492,
+        "ordinary_tracking_error_px": -0.02322626424455032,
+        "tracking_confidence": -0.001983642578125,
+        "tracking_head_extra_mismatch_px": 0.5421013023829451
+      },
+      "scene": "gascola_P003",
+      "scene_label": "Gascola 1",
+      "seed": 43,
+      "view_position_count": 4
+    },
+    {
+      "same_minus_independent_noise": {
+        "gap_between_3d_outputs_px": -0.004041257914557672,
+        "ordinary_tracking_error_px": 0.05007131048376512,
+        "tracking_confidence": 0.001953125,
+        "tracking_head_extra_mismatch_px": 0.1387059872764338
+      },
+      "scene": "gascola_P005",
+      "scene_label": "Gascola 2",
+      "seed": 17,
+      "view_position_count": 2
+    },
+    {
+      "same_minus_independent_noise": {
+        "gap_between_3d_outputs_px": 0.0028892550856087773,
+        "ordinary_tracking_error_px": 0.01587311000807279,
+        "tracking_confidence": 0.0078125,
+        "tracking_head_extra_mismatch_px": -0.2350819332428209
+      },
+      "scene": "gascola_P005",
+      "scene_label": "Gascola 2",
+      "seed": 29,
+      "view_position_count": 2
+    },
+    {
+      "same_minus_independent_noise": {
+        "gap_between_3d_outputs_px": -0.11673828805200603,
+        "ordinary_tracking_error_px": 0.007754741354895622,
+        "tracking_confidence": -0.005859375,
+        "tracking_head_extra_mismatch_px": -0.22514303187077456
+      },
+      "scene": "gascola_P005",
+      "scene_label": "Gascola 2",
+      "seed": 43,
+      "view_position_count": 2
+    },
+    {
+      "same_minus_independent_noise": {
+        "gap_between_3d_outputs_px": 0.04029557173297782,
+        "ordinary_tracking_error_px": -0.1004356758730629,
+        "tracking_confidence": -0.0001068115234375,
+        "tracking_head_extra_mismatch_px": 0.4494481301247575
+      },
+      "scene": "gascola_P005",
+      "scene_label": "Gascola 2",
+      "seed": 17,
+      "view_position_count": 4
+    },
+    {
+      "same_minus_independent_noise": {
+        "gap_between_3d_outputs_px": -0.03459850189325131,
+        "ordinary_tracking_error_px": 0.007096223574512117,
+        "tracking_confidence": 2.6702880859375e-05,
+        "tracking_head_extra_mismatch_px": 0.4925494997938529
+      },
+      "scene": "gascola_P005",
+      "scene_label": "Gascola 2",
+      "seed": 29,
+      "view_position_count": 4
+    },
+    {
+      "same_minus_independent_noise": {
+        "gap_between_3d_outputs_px": 0.11791767372983264,
+        "ordinary_tracking_error_px": -0.08045593357358627,
+        "tracking_confidence": 0.000133514404296875,
+        "tracking_head_extra_mismatch_px": -1.216599585354512
+      },
+      "scene": "gascola_P005",
+      "scene_label": "Gascola 2",
+      "seed": 43,
+      "view_position_count": 4
+    },
+    {
+      "same_minus_independent_noise": {
+        "gap_between_3d_outputs_px": 0.009144128866177326,
+        "ordinary_tracking_error_px": -0.026208699968968074,
+        "tracking_confidence": 0.0,
+        "tracking_head_extra_mismatch_px": -0.0505879069735361
+      },
+      "scene": "hospital_P000",
+      "scene_label": "Hospital 1",
+      "seed": 17,
+      "view_position_count": 2
+    },
+    {
+      "same_minus_independent_noise": {
+        "gap_between_3d_outputs_px": -0.046633315436682254,
+        "ordinary_tracking_error_px": 0.03457774538088754,
+        "tracking_confidence": 0.0,
+        "tracking_head_extra_mismatch_px": -0.052518463096274365
+      },
+      "scene": "hospital_P000",
+      "scene_label": "Hospital 1",
+      "seed": 29,
+      "view_position_count": 2
+    },
+    {
+      "same_minus_independent_noise": {
+        "gap_between_3d_outputs_px": 0.030226940856838747,
+        "ordinary_tracking_error_px": 0.01873069101173036,
+        "tracking_confidence": 0.0,
+        "tracking_head_extra_mismatch_px": 0.008490443811122517
+      },
+      "scene": "hospital_P000",
+      "scene_label": "Hospital 1",
+      "seed": 43,
+      "view_position_count": 2
+    },
+    {
+      "same_minus_independent_noise": {
+        "gap_between_3d_outputs_px": -0.019601224314827137,
+        "ordinary_tracking_error_px": -0.043973622787252586,
+        "tracking_confidence": 0.078125,
+        "tracking_head_extra_mismatch_px": -0.03784959528318499
+      },
+      "scene": "hospital_P000",
+      "scene_label": "Hospital 1",
+      "seed": 17,
+      "view_position_count": 4
+    },
+    {
+      "same_minus_independent_noise": {
+        "gap_between_3d_outputs_px": -0.009005974816646223,
+        "ordinary_tracking_error_px": 0.0033447430362965047,
+        "tracking_confidence": 0.0234375,
+        "tracking_head_extra_mismatch_px": 0.13855311282476634
+      },
+      "scene": "hospital_P000",
+      "scene_label": "Hospital 1",
+      "seed": 29,
+      "view_position_count": 4
+    },
+    {
+      "same_minus_independent_noise": {
+        "gap_between_3d_outputs_px": 0.034360832338889535,
+        "ordinary_tracking_error_px": -0.03770513268172099,
+        "tracking_confidence": 0.05078125,
+        "tracking_head_extra_mismatch_px": -0.3026141224984009
+      },
+      "scene": "hospital_P000",
+      "scene_label": "Hospital 1",
+      "seed": 43,
+      "view_position_count": 4
+    },
+    {
+      "same_minus_independent_noise": {
+        "gap_between_3d_outputs_px": -0.036322803812472326,
+        "ordinary_tracking_error_px": 0.09245016657460148,
+        "tracking_confidence": 0.001953125,
+        "tracking_head_extra_mismatch_px": 0.03642747420651171
+      },
+      "scene": "hospital_P003",
+      "scene_label": "Hospital 2",
+      "seed": 17,
+      "view_position_count": 2
+    },
+    {
+      "same_minus_independent_noise": {
+        "gap_between_3d_outputs_px": -0.016321677133167345,
+        "ordinary_tracking_error_px": 0.04901739990996529,
+        "tracking_confidence": 0.00390625,
+        "tracking_head_extra_mismatch_px": 0.04461611251153913
+      },
+      "scene": "hospital_P003",
+      "scene_label": "Hospital 2",
+      "seed": 29,
+      "view_position_count": 2
+    },
+    {
+      "same_minus_independent_noise": {
+        "gap_between_3d_outputs_px": -0.0017372672941720069,
+        "ordinary_tracking_error_px": 0.0008538328533874706,
+        "tracking_confidence": 0.0,
+        "tracking_head_extra_mismatch_px": 0.09030940444174484
+      },
+      "scene": "hospital_P003",
+      "scene_label": "Hospital 2",
+      "seed": 43,
+      "view_position_count": 2
+    },
+    {
+      "same_minus_independent_noise": {
+        "gap_between_3d_outputs_px": -0.019890445025643633,
+        "ordinary_tracking_error_px": 0.026950146538443187,
+        "tracking_confidence": 4.1961669921875e-05,
+        "tracking_head_extra_mismatch_px": -0.0643422617628957
+      },
+      "scene": "hospital_P003",
+      "scene_label": "Hospital 2",
+      "seed": 17,
+      "view_position_count": 4
+    },
+    {
+      "same_minus_independent_noise": {
+        "gap_between_3d_outputs_px": 0.031065183638698812,
+        "ordinary_tracking_error_px": -0.14029353405436118,
+        "tracking_confidence": 0.00030517578125,
+        "tracking_head_extra_mismatch_px": -0.6277588802585718
+      },
+      "scene": "hospital_P003",
+      "scene_label": "Hospital 2",
+      "seed": 29,
+      "view_position_count": 4
+    },
+    {
+      "same_minus_independent_noise": {
+        "gap_between_3d_outputs_px": 0.007653531992781959,
+        "ordinary_tracking_error_px": 0.03876914329561043,
+        "tracking_confidence": 7.62939453125e-05,
+        "tracking_head_extra_mismatch_px": -0.14807986765170966
+      },
+      "scene": "hospital_P003",
+      "scene_label": "Hospital 2",
+      "seed": 43,
+      "view_position_count": 4
+    }
+  ],
+  "preregistered_decision": {
+    "all_positive_depth_pairs": {
+      "2": {
+        "confidence_maintained_or_increased_scene_count_of_4": 4,
+        "extra_mismatch_increase_scene_count_of_4": 2,
+        "joint_preregistered_condition_passed": false
+      },
+      "4": {
+        "confidence_maintained_or_increased_scene_count_of_4": 3,
+        "extra_mismatch_increase_scene_count_of_4": 2,
+        "joint_preregistered_condition_passed": false
+      }
+    },
+    "label": "hypothesis_not_supported",
+    "ordinary_metric_independent_pair_count_of_24": 0,
+    "required_condition": "Within both view-position settings, repeated noise must increase extra mismatch in at least three of four scene-sequences while confidence is maintained or increased in at least three. The change must also remain after ordinary-error controls.",
+    "support_localization_run": false
+  },
+  "protocol": {
+    "dataset": "TartanAir Easy",
+    "experiment_seeds": [
+      17,
+      29,
+      43
+    ],
+    "failed_forward_count": 0,
+    "independent_scene_sequence_count": 4,
+    "independent_unit": "scene-sequence; the three noise seeds are summarized within each sequence",
+    "input_images_per_forward": 12,
+    "model": "facebook/VGGT-1B",
+    "model_forward_count": 48,
+    "model_input_size_wh": [
+      518,
+      392
+    ],
+    "noise": {
+      "allowed_mean_psnr_difference_db": 0.05,
+      "distribution": "zero-mean Gaussian RGB noise",
+      "independent_pattern_arm": "a distinct same-RMS pattern for every recapture",
+      "maximum_mean_psnr_difference_between_paired_arms_db": 0.0029957129822264505,
+      "preclipping_rms_8bit": 3.0,
+      "same_pattern_arm": "one byte-identical pattern repeated for recaptures at each position"
+    },
+    "official_forward_only": true,
+    "postprocessing_or_optimization": false,
+    "query_count": 48,
+    "reference_query_grid": [
+      8,
+      6
+    ],
+    "scene_sequences": [
+      "gascola_P003",
+      "gascola_P005",
+      "hospital_P000",
+      "hospital_P003"
+    ],
+    "successful_forward_count": 48,
+    "training_or_finetuning": false,
+    "uses_per_position": {
+      "2": 6,
+      "4": 3
+    },
+    "view_position_counts": [
+      2,
+      4
+    ]
+  },
+  "qualitative": {
+    "gap_between_3d_outputs_px_original_image": 1.989392596498613,
+    "ground_truth_visible": true,
+    "noise_condition": "independent",
+    "packet": "one_world_vggt_qualitative.npz",
+    "point_order": [
+      "tracking_head",
+      "depth_and_camera",
+      "direct_3d_point",
+      "ground_truth"
+    ],
+    "points_xy_resized_image": [
+      [
+        53.22432507842665,
+        7.155865852200255
+      ],
+      [
+        52.028975915219775,
+        -1.189691194212565
+      ],
+      [
+        51.05396326821037,
+        -2.882039743667521
+      ],
+      [
+        52.267315821333256,
+        0.05330325125414675
+      ]
+    ],
+    "query_index": 0,
+    "resized_image_size_wh": [
+      512,
+      384
+    ],
+    "scene": "hospital_P003",
+    "scene_label": "Hospital 2",
+    "seed": 17,
+    "selection_rule": "maximum absolute track-specific excess among GT-visible valid pairs; tie by scene, then query, then frame (remaining task fields only if still tied)",
+    "target_frame": 6,
+    "tracking_head_extra_mismatch_px_original_image": 8.604830614188026,
+    "view_position_count": 2
+  },
+  "question": "Does repeating the same sensor-noise pattern make VGGT remain confident while its camera, depth, direct 3D point, and tracking outputs become mutually inconsistent?",
+  "schema_version": 1,
+  "status": "complete",
+  "view_composition_posthoc": {
+    "claim_boundary": "View identities and repetition counts change together. Visible extra mismatch and ordinary tracking error both increase, so this does not isolate a new cross-head failure mechanism.",
+    "comparison": "four distinct positions used three times each minus two distinct positions used six times each",
+    "evidence": "post_hoc_observation",
+    "scene_rows": [
+      {
+        "four_positions_minus_two_positions": {
+          "all_positive_depth_extra_mismatch_px": {
+            "maximum": 7.927699009301587,
+            "median": 6.804003806186137,
+            "minimum": 6.446165725433459,
+            "positive_count_of_6": 6
+          },
+          "ordinary_tracking_error_px": {
+            "maximum": 0.2410892028228817,
+            "median": 0.21496334978937076,
+            "minimum": 0.14953564386406748,
+            "positive_count_of_6": 6
+          },
+          "visible_extra_mismatch_px": {
+            "maximum": 0.21415563001552113,
+            "median": 0.14660177741616945,
+            "minimum": 0.04157273073663409,
+            "positive_count_of_6": 6
+          },
+          "visible_gap_between_3d_outputs_px": {
+            "maximum": -0.00979863248288848,
+            "median": -0.08864597872615287,
+            "minimum": -0.15030241876489336,
+            "positive_count_of_6": 0
+          },
+          "visible_tracking_confidence": {
+            "maximum": -0.00390625,
+            "median": -0.00390625,
+            "minimum": -0.005859375,
+            "positive_count_of_6": 0
+          }
+        },
+        "scene": "gascola_P003",
+        "scene_label": "Gascola 1"
+      },
+      {
+        "four_positions_minus_two_positions": {
+          "all_positive_depth_extra_mismatch_px": {
+            "maximum": 16.270669443731798,
+            "median": 14.144297390730138,
+            "minimum": 13.17980115929446,
+            "positive_count_of_6": 6
+          },
+          "ordinary_tracking_error_px": {
+            "maximum": 0.3136575328226672,
+            "median": 0.2236735409909273,
+            "minimum": 0.16315054646583915,
+            "positive_count_of_6": 6
+          },
+          "visible_extra_mismatch_px": {
+            "maximum": 0.3716298848002705,
+            "median": 0.2985657631980412,
+            "minimum": 0.16009760587293576,
+            "positive_count_of_6": 6
+          },
+          "visible_gap_between_3d_outputs_px": {
+            "maximum": 0.09716669858904425,
+            "median": -0.0890700738546698,
+            "minimum": -0.17298831507567858,
+            "positive_count_of_6": 1
+          },
+          "visible_tracking_confidence": {
+            "maximum": -0.00390625,
+            "median": -0.00390625,
+            "minimum": -0.00390625,
+            "positive_count_of_6": 0
+          }
+        },
+        "scene": "gascola_P005",
+        "scene_label": "Gascola 2"
+      },
+      {
+        "four_positions_minus_two_positions": {
+          "all_positive_depth_extra_mismatch_px": {
+            "maximum": 2.4604615267403127,
+            "median": 2.4240424492656,
+            "minimum": 2.1226166203599632,
+            "positive_count_of_6": 6
+          },
+          "ordinary_tracking_error_px": {
+            "maximum": 0.15504962289440022,
+            "median": 0.12977491233555583,
+            "minimum": 0.051118226669165434,
+            "positive_count_of_6": 6
+          },
+          "visible_extra_mismatch_px": {
+            "maximum": 0.2639529619770984,
+            "median": 0.21264446703499207,
+            "minimum": 0.15432196550125632,
+            "positive_count_of_6": 6
+          },
+          "visible_gap_between_3d_outputs_px": {
+            "maximum": -0.06019935445403668,
+            "median": -0.07874907463129754,
+            "minimum": -0.13383889918902359,
+            "positive_count_of_6": 0
+          },
+          "visible_tracking_confidence": {
+            "maximum": -0.00390625,
+            "median": -0.0078125,
+            "minimum": -0.015625,
+            "positive_count_of_6": 0
+          }
+        },
+        "scene": "hospital_P000",
+        "scene_label": "Hospital 1"
+      },
+      {
+        "four_positions_minus_two_positions": {
+          "all_positive_depth_extra_mismatch_px": {
+            "maximum": 23.78091455239379,
+            "median": 23.34899792012073,
+            "minimum": 22.491466700006345,
+            "positive_count_of_6": 6
+          },
+          "ordinary_tracking_error_px": {
+            "maximum": 0.30816788677794116,
+            "median": 0.20313610198180404,
+            "minimum": 0.09870762552358975,
+            "positive_count_of_6": 6
+          },
+          "visible_extra_mismatch_px": {
+            "maximum": 0.32335853067309284,
+            "median": 0.27030355090332636,
+            "minimum": 0.11999182785380286,
+            "positive_count_of_6": 6
+          },
+          "visible_gap_between_3d_outputs_px": {
+            "maximum": -0.015359780186306793,
+            "median": -0.025591338594239843,
+            "minimum": -0.04185378732328382,
+            "positive_count_of_6": 0
+          },
+          "visible_tracking_confidence": {
+            "maximum": -0.015625,
+            "median": -0.01953125,
+            "minimum": -0.01953125,
+            "positive_count_of_6": 0
+          }
+        },
+        "scene": "hospital_P003",
+        "scene_label": "Hospital 2"
+      }
+    ]
+  },
+  "visibility_loophole_audit": {
+    "conclusion": "Restricting the analysis to observable target pairs leaves the repeated-noise direction at two of four scene-sequences for both view-position settings.",
+    "evidence": "post_hoc_loophole_audit",
+    "ground_truth_visible_pairs": {
+      "2": {
+        "confidence_maintained_or_increased_scene_count_of_4": 4,
+        "extra_mismatch_increase_scene_count_of_4": 2,
+        "scene_rows": [
+          {
+            "same_minus_independent_noise_visible_confidence": 0.0,
+            "same_minus_independent_noise_visible_extra_mismatch_px": 0.03435730248227331,
+            "scene": "gascola_P003",
+            "scene_label": "Gascola 1"
+          },
+          {
+            "same_minus_independent_noise_visible_confidence": 0.0,
+            "same_minus_independent_noise_visible_extra_mismatch_px": -0.049536060429470175,
+            "scene": "gascola_P005",
+            "scene_label": "Gascola 2"
+          },
+          {
+            "same_minus_independent_noise_visible_confidence": 0.0,
+            "same_minus_independent_noise_visible_extra_mismatch_px": -0.04630936552596296,
+            "scene": "hospital_P000",
+            "scene_label": "Hospital 1"
+          },
+          {
+            "same_minus_independent_noise_visible_confidence": 0.0,
+            "same_minus_independent_noise_visible_extra_mismatch_px": 0.027674652218924234,
+            "scene": "hospital_P003",
+            "scene_label": "Hospital 2"
+          }
+        ]
+      },
+      "4": {
+        "confidence_maintained_or_increased_scene_count_of_4": 4,
+        "extra_mismatch_increase_scene_count_of_4": 2,
+        "scene_rows": [
+          {
+            "same_minus_independent_noise_visible_confidence": 0.0,
+            "same_minus_independent_noise_visible_extra_mismatch_px": -0.05650182038127499,
+            "scene": "gascola_P003",
+            "scene_label": "Gascola 1"
+          },
+          {
+            "same_minus_independent_noise_visible_confidence": 0.0,
+            "same_minus_independent_noise_visible_extra_mismatch_px": 0.04699090789565852,
+            "scene": "gascola_P005",
+            "scene_label": "Gascola 2"
+          },
+          {
+            "same_minus_independent_noise_visible_confidence": 0.00390625,
+            "same_minus_independent_noise_visible_extra_mismatch_px": 0.005834637468265902,
+            "scene": "hospital_P000",
+            "scene_label": "Hospital 1"
+          },
+          {
+            "same_minus_independent_noise_visible_confidence": 0.0,
+            "same_minus_independent_noise_visible_extra_mismatch_px": -0.07259904120153199,
+            "scene": "hospital_P003",
+            "scene_label": "Hospital 2"
+          }
+        ]
+      }
+    }
+  }
+}

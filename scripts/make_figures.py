@@ -71,6 +71,13 @@ def load_qualitative_results() -> tuple[dict, dict[str, np.ndarray]]:
     return metadata, arrays
 
 
+def load_one_world_results() -> tuple[dict, dict[str, np.ndarray]]:
+    results = json.loads((DATA / "one_world_vggt.json").read_text())
+    with np.load(DATA / "one_world_vggt_qualitative.npz", allow_pickle=False) as packet:
+        arrays = {name: packet[name] for name in packet.files}
+    return results, arrays
+
+
 def validate(rows: list[dict], summary: dict) -> None:
     assert [row["K"] for row in rows] == [8, 12, 16, 20, 24, 32, 48, 64]
     by_k = {row["K"]: row for row in rows}
@@ -167,6 +174,65 @@ def validate_qualitative_results(metadata: dict, packet: dict[str, np.ndarray]) 
             "median_percent"
         ]
         assert math.isclose(observed, expected, rel_tol=1.0e-6)
+
+
+def validate_one_world_results(results: dict, packet: dict[str, np.ndarray]) -> None:
+    assert results["status"] == "complete"
+    protocol = results["protocol"]
+    assert protocol["model"] == "facebook/VGGT-1B"
+    assert protocol["model_forward_count"] == 48
+    assert protocol["successful_forward_count"] == 48
+    assert protocol["failed_forward_count"] == 0
+    assert protocol["independent_scene_sequence_count"] == 4
+    assert protocol["query_count"] == 48
+    assert protocol["noise"]["maximum_mean_psnr_difference_between_paired_arms_db"] < 0.003
+    assert protocol["noise"]["allowed_mean_psnr_difference_db"] == 0.05
+
+    controls = results["known_answer_controls"]
+    assert controls["overall_pass"] is True
+    assert controls["synthetic_case_count"] == 51
+    assert controls["maximum_primary_change_after_confidence_swap"] == 0.0
+    assert controls["analytic_replacement_maximum_px_on_real_outputs"] == 0.0
+    assert controls["minimum_detected_planted_offset_px_on_real_outputs"] > 32.0
+
+    decision = results["preregistered_decision"]
+    assert decision["label"] == "hypothesis_not_supported"
+    assert decision["all_positive_depth_pairs"]["2"] == {
+        "confidence_maintained_or_increased_scene_count_of_4": 4,
+        "extra_mismatch_increase_scene_count_of_4": 2,
+        "joint_preregistered_condition_passed": False,
+    }
+    assert decision["all_positive_depth_pairs"]["4"] == {
+        "confidence_maintained_or_increased_scene_count_of_4": 3,
+        "extra_mismatch_increase_scene_count_of_4": 2,
+        "joint_preregistered_condition_passed": False,
+    }
+    assert decision["ordinary_metric_independent_pair_count_of_24"] == 0
+    visible = results["visibility_loophole_audit"]["ground_truth_visible_pairs"]
+    assert visible["2"]["extra_mismatch_increase_scene_count_of_4"] == 2
+    assert visible["4"]["extra_mismatch_increase_scene_count_of_4"] == 2
+    assert len(results["paired_acquisition_effects"]) == 24
+
+    view_rows = results["view_composition_posthoc"]["scene_rows"]
+    assert len(view_rows) == 4
+    for row in view_rows:
+        effects = row["four_positions_minus_two_positions"]
+        assert effects["visible_extra_mismatch_px"]["positive_count_of_6"] == 6
+        assert effects["ordinary_tracking_error_px"]["positive_count_of_6"] == 6
+        assert effects["visible_tracking_confidence"]["positive_count_of_6"] == 0
+
+    assert packet["rgb"].shape == (384, 512, 3)
+    assert packet["points_xy"].shape == (4, 2)
+    assert packet["point_names"].tolist() == [
+        "tracking_head",
+        "depth_and_camera",
+        "direct_3d_point",
+        "ground_truth",
+    ]
+    assert math.isclose(
+        results["qualitative"]["tracking_head_extra_mismatch_px_original_image"],
+        8.604830614188026,
+    )
 
 
 def style() -> None:
@@ -960,6 +1026,250 @@ def plot_shared_output_projectivity(results: dict) -> None:
     plt.close(fig)
 
 
+def plot_one_world_design() -> None:
+    fig, axis = plt.subplots(figsize=(13.2, 6.2))
+    axis.set_xlim(0, 1)
+    axis.set_ylim(0, 1)
+    axis.axis("off")
+    axis.set_title(
+        "同じsensor noise模様の反復だけを変える比較",
+        fontsize=15,
+        fontweight="bold",
+        pad=14,
+    )
+
+    _box(axis, 0.01, 0.64, 0.15, 0.18, "4つの独立な\n画像系列", "#F1F1F1", fontsize=11)
+    _box(axis, 0.21, 0.73, 0.17, 0.14, "2つの撮影位置を\n各6回使用", "#D9EDF7", fontsize=10.5)
+    _box(axis, 0.21, 0.55, 0.17, 0.14, "4つの撮影位置を\n各3回使用", "#D9EDF7", fontsize=10.5)
+    _box(axis, 0.44, 0.73, 0.18, 0.14, "同じnoise模様を\n同じ位置で反復", "#FCE5CD", fontsize=10.5)
+    _box(axis, 0.44, 0.55, 0.18, 0.14, "毎回異なる\nnoise模様を付加", "#FCE5CD", fontsize=10.5)
+    _box(
+        axis,
+        0.69,
+        0.64,
+        0.29,
+        0.18,
+        "12枚・順序・基準画像を固定\n基準画像上の48点を追跡\n公式VGGTを1回実行",
+        "#E2F0D9",
+        fontsize=10.5,
+    )
+    for start, end in (
+        ((0.16, 0.73), (0.21, 0.80)),
+        ((0.16, 0.73), (0.21, 0.62)),
+        ((0.38, 0.80), (0.44, 0.80)),
+        ((0.38, 0.62), (0.44, 0.62)),
+        ((0.62, 0.80), (0.69, 0.75)),
+        ((0.62, 0.62), (0.69, 0.70)),
+    ):
+        _arrow(axis, start, end)
+
+    axis.text(
+        0.01,
+        0.43,
+        "同じ点の移動先を，VGGTの三つの出力から求める",
+        fontsize=12,
+        fontweight="bold",
+    )
+    _box(axis, 0.02, 0.12, 0.25, 0.20, "奥行きとcameraから\n計算した位置", "#CFE2F3", fontsize=10.5)
+    _box(axis, 0.375, 0.12, 0.25, 0.20, "3D点の直接予測から\n計算した位置", "#D9EAD3", fontsize=10.5)
+    _box(axis, 0.73, 0.12, 0.25, 0.20, "追跡headが直接\n予測した位置", "#F4CCCC", fontsize=10.5)
+    axis.plot((0.27, 0.375), (0.22, 0.22), color="#444444", linewidth=2)
+    axis.text(0.3225, 0.255, "3D出力同士のずれ", ha="center", fontsize=9.5)
+    _arrow(axis, (0.625, 0.22), (0.73, 0.22))
+    axis.text(
+        0.6775,
+        0.265,
+        "二つの3D予測の間から\n追跡予測が外れた距離",
+        ha="center",
+        fontsize=9.2,
+    )
+    axis.text(
+        0.5,
+        0.03,
+        "主指標の計算と点の選択にはconfidenceを使わない",
+        ha="center",
+        color="#8B0000",
+        fontweight="bold",
+        fontsize=10.5,
+    )
+    fig.savefig(FIGURES / "vggt_noise_experiment_design.png", bbox_inches="tight")
+    plt.close(fig)
+
+
+def plot_one_world_acquisition_effects(results: dict) -> None:
+    scene_order = ("gascola_P003", "gascola_P005", "hospital_P000", "hospital_P003")
+    scene_labels = ("Gascola 1", "Gascola 2", "Hospital 1", "Hospital 2")
+    rows = results["paired_acquisition_effects"]
+    fig, axes = plt.subplots(2, 2, figsize=(11.2, 7.4), sharex=True, constrained_layout=True)
+    panels = (
+        (2, "tracking_head_extra_mismatch_px", "追跡headだけに残る追加ずれ (px)"),
+        (4, "tracking_head_extra_mismatch_px", "追跡headだけに残る追加ずれ (px)"),
+        (2, "tracking_confidence", "追跡confidence"),
+        (4, "tracking_confidence", "追跡confidence"),
+    )
+    for panel_index, (axis, (position_count, metric, metric_label)) in enumerate(
+        zip(axes.flat, panels)
+    ):
+        for scene_index, scene in enumerate(scene_order):
+            values = np.asarray(
+                [
+                    row["same_minus_independent_noise"][metric]
+                    for row in rows
+                    if row["scene"] == scene
+                    and row["view_position_count"] == position_count
+                ],
+                dtype=float,
+            )
+            assert len(values) == 3
+            center = float(np.median(values))
+            axis.errorbar(
+                scene_index,
+                center,
+                yerr=np.array([[center - np.min(values)], [np.max(values) - center]]),
+                fmt="o",
+                markersize=7,
+                capsize=4,
+                color="#287DB2" if metric.endswith("px") else "#D95F02",
+            )
+        axis.axhline(0.0, color="#555555", linewidth=1.0, linestyle="--")
+        axis.set_xticks(range(4), scene_labels)
+        if panel_index % 2 == 0:
+            axis.set_ylabel("同じnoise − 異なるnoise\n" + metric_label)
+        if panel_index < 2:
+            axis.set_title(f"{position_count}つの撮影位置", fontweight="bold")
+    fig.suptitle(
+        "同じnoise模様を反復した効果：0より上なら反復条件の方が大きい\n"
+        "点は各画像系列の3回の中央値，ひげはその範囲",
+        fontsize=14,
+        fontweight="bold",
+    )
+    fig.savefig(FIGURES / "vggt_noise_acquisition_effects.png", bbox_inches="tight")
+    plt.close(fig)
+
+
+def plot_one_world_ordinary_error_audit(results: dict) -> None:
+    scene_order = ("gascola_P003", "gascola_P005", "hospital_P000", "hospital_P003")
+    scene_labels = {
+        "gascola_P003": "Gascola 1",
+        "gascola_P005": "Gascola 2",
+        "hospital_P000": "Hospital 1",
+        "hospital_P003": "Hospital 2",
+    }
+    rows = results["paired_acquisition_effects"]
+    fig, axes = plt.subplots(1, 2, figsize=(11.2, 5.1), constrained_layout=True)
+    for axis, position_count in zip(axes, (2, 4)):
+        for scene_index, scene in enumerate(scene_order):
+            scene_rows = [
+                row
+                for row in rows
+                if row["scene"] == scene
+                and row["view_position_count"] == position_count
+            ]
+            x = float(
+                np.median(
+                    [
+                        row["same_minus_independent_noise"]["ordinary_tracking_error_px"]
+                        for row in scene_rows
+                    ]
+                )
+            )
+            y = float(
+                np.median(
+                    [
+                        row["same_minus_independent_noise"]["tracking_head_extra_mismatch_px"]
+                        for row in scene_rows
+                    ]
+                )
+            )
+            axis.scatter(x, y, s=70, color=f"C{scene_index}", zorder=3)
+            axis.annotate(scene_labels[scene], (x, y), xytext=(6, 6), textcoords="offset points")
+        axis.axhline(0.0, color="#555555", linewidth=1.0, linestyle="--")
+        axis.axvline(0.0, color="#555555", linewidth=1.0, linestyle="--")
+        axis.set_xlabel("通常の追跡誤差の変化 (px)")
+        axis.set_ylabel("追跡headだけに残る追加ずれの変化 (px)")
+        axis.set_title(f"{position_count}つの撮影位置", fontweight="bold")
+    fig.suptitle(
+        "追加ずれは通常の追跡誤差とは別に変化したか\n"
+        "各点は一つの画像系列，横軸・縦軸とも「同じnoise − 異なるnoise」",
+        fontsize=14,
+        fontweight="bold",
+    )
+    fig.savefig(FIGURES / "vggt_noise_ordinary_error_audit.png", bbox_inches="tight")
+    plt.close(fig)
+
+
+def plot_one_world_qualitative(results: dict, packet: dict[str, np.ndarray]) -> None:
+    image = packet["rgb"]
+    points = packet["points_xy"].astype(float)
+    native, depth, direct_point, ground_truth = points
+    fig, axes = plt.subplots(1, 2, figsize=(12, 5.6), constrained_layout=True)
+    margin_x = max(8.0, float(np.ptp(points[:, 0])) * 0.8)
+    margin_y = max(8.0, float(np.ptp(points[:, 1])) * 0.8)
+    x_limits = (float(np.min(points[:, 0]) - margin_x), float(np.max(points[:, 0]) + margin_x))
+    y_limits = (float(np.max(points[:, 1]) + margin_y), float(np.min(points[:, 1]) - margin_y))
+    entries = (
+        (native, "o", "#D62728", "追跡head"),
+        (depth, "X", "#1F77B4", "奥行き＋camera"),
+        (direct_point, "P", "#2CA02C", "3D点の直接予測"),
+        (ground_truth, "*", "#FFDD57", "正解位置"),
+    )
+
+    def draw(axis, annotate: bool) -> None:
+        axis.set_facecolor("#EEEEEE")
+        axis.imshow(image, zorder=0)
+        axis.plot(
+            (depth[0], direct_point[0]),
+            (depth[1], direct_point[1]),
+            color="#222222",
+            linewidth=2.5,
+            zorder=2,
+        )
+        for coordinates, marker, color, text in entries:
+            axis.scatter(
+                *coordinates,
+                s=110,
+                marker=marker,
+                color=color,
+                edgecolor="black" if marker == "*" else "white",
+                linewidth=1.1,
+                zorder=3,
+            )
+            if annotate:
+                axis.annotate(
+                    text,
+                    coordinates,
+                    xytext=(7, 7),
+                    textcoords="offset points",
+                    fontsize=8.5,
+                    fontweight="bold",
+                    bbox={
+                        "boxstyle": "round,pad=0.18",
+                        "facecolor": "white",
+                        "alpha": 0.85,
+                        "edgecolor": "none",
+                    },
+                    zorder=4,
+                )
+
+    draw(axes[0], annotate=False)
+    draw(axes[1], annotate=True)
+    axes[0].set_title("画像全体での位置", fontweight="bold")
+    axes[1].set_xlim(*x_limits)
+    axes[1].set_ylim(*y_limits)
+    axes[1].set_title("予測位置の拡大", fontweight="bold")
+    for axis in axes:
+        axis.set_xlabel("画像のx座標 (px)")
+        axis.set_ylabel("画像のy座標 (px)")
+    mismatch = results["qualitative"]["tracking_head_extra_mismatch_px_original_image"]
+    fig.suptitle(
+        f"実例：追跡headの予測が，二つの3D出力が示す範囲から {mismatch:.1f} px 外れた",
+        fontsize=14,
+        fontweight="bold",
+    )
+    fig.savefig(FIGURES / "vggt_noise_qualitative.png", bbox_inches="tight")
+    plt.close(fig)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--check", action="store_true", help="validate data and generated files")
@@ -971,11 +1281,13 @@ def main() -> None:
     summary = load_summary()
     set_filter_geometry, iterative_filter, subset_law, projectivity = load_set_filter_results()
     qualitative_metadata, qualitative_packet = load_qualitative_results()
+    one_world_results, one_world_packet = load_one_world_results()
     validate(rows, summary)
     validate_set_filter_results(
         set_filter_geometry, iterative_filter, subset_law, projectivity
     )
     validate_qualitative_results(qualitative_metadata, qualitative_packet)
+    validate_one_world_results(one_world_results, one_world_packet)
     style()
     plot_experiment_design()
     plot_dvlt(rows)
@@ -990,6 +1302,10 @@ def main() -> None:
     plot_distractor_subset_law(subset_law)
     plot_projectivity_qualitative(qualitative_metadata, qualitative_packet)
     plot_shared_output_projectivity(projectivity)
+    plot_one_world_design()
+    plot_one_world_acquisition_effects(one_world_results)
+    plot_one_world_ordinary_error_audit(one_world_results)
+    plot_one_world_qualitative(one_world_results, one_world_packet)
 
     if args.check:
         for name in (
@@ -1006,6 +1322,10 @@ def main() -> None:
             "distractor_count_curves.png",
             "projectivity_qualitative_example.png",
             "shared_output_change_plots.png",
+            "vggt_noise_experiment_design.png",
+            "vggt_noise_acquisition_effects.png",
+            "vggt_noise_ordinary_error_audit.png",
+            "vggt_noise_qualitative.png",
         ):
             path = FIGURES / name
             assert path.exists() and path.stat().st_size > 10_000, path

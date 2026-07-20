@@ -373,9 +373,19 @@
     ]
   },
   "qualitative": {
-    "gap_between_3d_outputs_px_original_image": 1.989392596498613,
+    "all_four_positions_inside_selection_margin": true,
+    "gap_between_3d_outputs_px_model_input": 2.4422623936797128,
+    "gap_between_3d_outputs_px_original_image": 3.0161979840279294,
     "ground_truth_visible": true,
-    "noise_condition": "independent",
+    "ground_truth_visible_valid_pair_count": 13212,
+    "minimum_horizontal_margin_px": 32.0,
+    "minimum_normalized_border_margin": 0.3282533664455801,
+    "minimum_vertical_margin_px": 24.0,
+    "noise_condition": "correlated",
+    "original_image_size_wh": [
+      640,
+      480
+    ],
     "packet": "one_world_vggt_qualitative.npz",
     "point_order": [
       "tracking_head",
@@ -385,34 +395,39 @@
     ],
     "points_xy_resized_image": [
       [
-        53.22432507842665,
-        7.155865852200255
+        342.8534387065638,
+        209.59165935905614
       ],
       [
-        52.028975915219775,
-        -1.189691194212565
+        337.4464230435249,
+        204.82987428458006
       ],
       [
-        51.05396326821037,
-        -2.882039743667521
+        335.09023821743045,
+        205.35022151840496
       ],
       [
-        52.267315821333256,
-        0.05330325125414675
+        343.13427637986297,
+        208.83544405650423
       ]
     ],
-    "query_index": 0,
+    "query_index": 33,
     "resized_image_size_wh": [
       512,
       384
     ],
-    "scene": "hospital_P003",
-    "scene_label": "Hospital 2",
+    "scene": "gascola_P005",
+    "scene_label": "Gascola 2",
     "seed": 17,
-    "selection_rule": "maximum absolute track-specific excess among GT-visible valid pairs; tie by scene, then query, then frame (remaining task fields only if still tied)",
-    "target_frame": 6,
-    "tracking_head_extra_mismatch_px_original_image": 8.604830614188026,
-    "view_position_count": 2
+    "selection_border_margin_fraction": 0.05,
+    "selection_candidate_count": 12186,
+    "selection_evidence": "post_hoc_presentation_audit",
+    "selection_rule": "maximum absolute track-specific excess in the fixed 518x392 model-input coordinate system among GT-visible valid pairs for which ground truth, tracking head, depth+camera, and direct 3D point positions are each at least 5% of image width/height from the corresponding original-image boundary; tie by scene, then query, then frame (remaining task fields only if still tied)",
+    "target_frame": 3,
+    "tracking_head_extra_mismatch_px_model_input": 7.318077697167545,
+    "tracking_head_extra_mismatch_px_original_image": 9.006110380237281,
+    "tracking_head_to_ground_truth_px_original_image": 1.008349039393856,
+    "view_position_count": 4
   },
   "question": "Does repeating the same sensor-noise pattern make VGGT remain confident while its camera, depth, direct 3D point, and tracking outputs become mutually inconsistent?",
   "schema_version": 1,

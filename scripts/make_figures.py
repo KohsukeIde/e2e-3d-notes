@@ -229,10 +229,25 @@ def validate_one_world_results(results: dict, packet: dict[str, np.ndarray]) -> 
         "direct_3d_point",
         "ground_truth",
     ]
+    qualitative = results["qualitative"]
+    assert qualitative["ground_truth_visible"] is True
+    assert qualitative["all_four_positions_inside_selection_margin"] is True
+    assert math.isclose(qualitative["selection_border_margin_fraction"], 0.05)
     assert math.isclose(
-        results["qualitative"]["tracking_head_extra_mismatch_px_original_image"],
-        8.604830614188026,
+        qualitative["tracking_head_extra_mismatch_px_model_input"],
+        7.318077697167545,
     )
+    assert math.isclose(
+        qualitative["tracking_head_extra_mismatch_px_original_image"],
+        9.006110380237281,
+    )
+    width, height = qualitative["resized_image_size_wh"]
+    margin = qualitative["selection_border_margin_fraction"]
+    points = packet["points_xy"]
+    assert np.all(points[:, 0] >= margin * width)
+    assert np.all(points[:, 0] <= (1.0 - margin) * width)
+    assert np.all(points[:, 1] >= margin * height)
+    assert np.all(points[:, 1] <= (1.0 - margin) * height)
 
 
 def style() -> None:
@@ -1202,11 +1217,13 @@ def plot_one_world_qualitative(results: dict, packet: dict[str, np.ndarray]) -> 
     image = packet["rgb"]
     points = packet["points_xy"].astype(float)
     native, depth, direct_point, ground_truth = points
-    fig, axes = plt.subplots(1, 2, figsize=(12, 5.6), constrained_layout=True)
+    fig, axes = plt.subplots(1, 2, figsize=(12, 5.9))
     margin_x = max(8.0, float(np.ptp(points[:, 0])) * 0.8)
     margin_y = max(8.0, float(np.ptp(points[:, 1])) * 0.8)
-    x_limits = (float(np.min(points[:, 0]) - margin_x), float(np.max(points[:, 0]) + margin_x))
-    y_limits = (float(np.max(points[:, 1]) + margin_y), float(np.min(points[:, 1]) - margin_y))
+    x_min = float(np.min(points[:, 0]) - margin_x)
+    x_max = float(np.max(points[:, 0]) + margin_x)
+    y_min = float(np.min(points[:, 1]) - margin_y)
+    y_max = float(np.max(points[:, 1]) + margin_y)
     entries = (
         (native, "o", "#D62728", "追跡head"),
         (depth, "X", "#1F77B4", "奥行き＋camera"),
@@ -1214,8 +1231,7 @@ def plot_one_world_qualitative(results: dict, packet: dict[str, np.ndarray]) -> 
         (ground_truth, "*", "#FFDD57", "正解位置"),
     )
 
-    def draw(axis, annotate: bool) -> None:
-        axis.set_facecolor("#EEEEEE")
+    def draw(axis, marker_size: float) -> None:
         axis.imshow(image, zorder=0)
         axis.plot(
             (depth[0], direct_point[0]),
@@ -1227,45 +1243,85 @@ def plot_one_world_qualitative(results: dict, packet: dict[str, np.ndarray]) -> 
         for coordinates, marker, color, text in entries:
             axis.scatter(
                 *coordinates,
-                s=110,
+                s=marker_size,
                 marker=marker,
                 color=color,
                 edgecolor="black" if marker == "*" else "white",
                 linewidth=1.1,
                 zorder=3,
             )
-            if annotate:
-                axis.annotate(
-                    text,
-                    coordinates,
-                    xytext=(7, 7),
-                    textcoords="offset points",
-                    fontsize=8.5,
-                    fontweight="bold",
-                    bbox={
-                        "boxstyle": "round,pad=0.18",
-                        "facecolor": "white",
-                        "alpha": 0.85,
-                        "edgecolor": "none",
-                    },
-                    zorder=4,
-                )
 
-    draw(axes[0], annotate=False)
-    draw(axes[1], annotate=True)
-    axes[0].set_title("画像全体での位置", fontweight="bold")
-    axes[1].set_xlim(*x_limits)
-    axes[1].set_ylim(*y_limits)
-    axes[1].set_title("予測位置の拡大", fontweight="bold")
+    draw(axes[0], marker_size=85)
+    draw(axes[1], marker_size=145)
+    axes[0].add_patch(
+        Rectangle(
+            (x_min, y_min),
+            x_max - x_min,
+            y_max - y_min,
+            fill=False,
+            edgecolor="white",
+            linewidth=2.0,
+            linestyle="--",
+            zorder=4,
+        )
+    )
+    axes[0].set_title("画像全体（白枠を右で拡大）", fontweight="bold")
+    axes[1].set_xlim(x_min, x_max)
+    axes[1].set_ylim(y_max, y_min)
+    axes[1].set_title("画像内の局所的な位置関係", fontweight="bold")
+
+    segment = direct_point - depth
+    denominator = float(np.dot(segment, segment))
+    fraction = (
+        float(np.clip(np.dot(native - depth, segment) / denominator, 0.0, 1.0))
+        if denominator > 1.0e-16
+        else 0.0
+    )
+    closest = depth + fraction * segment
+    axes[1].plot(
+        (native[0], closest[0]),
+        (native[1], closest[1]),
+        color="#D62728",
+        linewidth=2.0,
+        linestyle="--",
+        zorder=2,
+    )
+    mismatch = results["qualitative"]["tracking_head_extra_mismatch_px_original_image"]
+    midpoint = (native + closest) / 2.0
+    axes[1].annotate(
+        f"元画像で {mismatch:.1f} px",
+        midpoint,
+        xytext=(0, -18),
+        textcoords="offset points",
+        ha="center",
+        fontsize=8.8,
+        fontweight="bold",
+        color="#9E1B1B",
+        bbox={"boxstyle": "round,pad=0.2", "facecolor": "white", "alpha": 0.9, "edgecolor": "none"},
+    )
     for axis in axes:
         axis.set_xlabel("画像のx座標 (px)")
         axis.set_ylabel("画像のy座標 (px)")
-    mismatch = results["qualitative"]["tracking_head_extra_mismatch_px_original_image"]
+
+    legend_handles = [
+        Line2D([], [], marker=marker, linestyle="none", markersize=9, markerfacecolor=color,
+               markeredgecolor="black" if marker == "*" else "white", label=label)
+        for _point, marker, color, label in entries
+    ]
+    legend_handles.extend(
+        [
+            Line2D([], [], color="#222222", linewidth=2.5, label="二つの3D経路が示す範囲"),
+            Line2D([], [], color="#D62728", linewidth=2.0, linestyle="--", label="追跡headだけに残る追加ずれ"),
+        ]
+    )
+    fig.legend(handles=legend_handles, loc="lower center", ncol=3, frameon=False, bbox_to_anchor=(0.5, 0.01))
     fig.suptitle(
-        f"実例：追跡headの予測が，二つの3D出力が示す範囲から {mismatch:.1f} px 外れた",
+        "実例：正解位置と三つの予測位置がすべて画像内にある場合",
         fontsize=14,
         fontweight="bold",
+        y=0.98,
     )
+    fig.subplots_adjust(left=0.07, right=0.98, top=0.86, bottom=0.20, wspace=0.22)
     fig.savefig(FIGURES / "vggt_noise_qualitative.png", bbox_inches="tight")
     plt.close(fig)
 

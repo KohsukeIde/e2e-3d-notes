@@ -1300,8 +1300,8 @@ def plot_one_world_qualitative(results: dict, packet: dict[str, np.ndarray]) -> 
         bbox={"boxstyle": "round,pad=0.2", "facecolor": "white", "alpha": 0.9, "edgecolor": "none"},
     )
     for axis in axes:
-        axis.set_xlabel("画像のx座標 (px)")
-        axis.set_ylabel("画像のy座標 (px)")
+        axis.set_xlabel("表示座標 x（512 × 384 px）")
+        axis.set_ylabel("表示座標 y（512 × 384 px）")
 
     legend_handles = [
         Line2D([], [], marker=marker, linestyle="none", markersize=9, markerfacecolor=color,

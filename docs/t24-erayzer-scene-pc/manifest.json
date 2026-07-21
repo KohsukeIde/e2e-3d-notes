@@ -1,0 +1,109 @@
+{
+  "format": "PCL1: magic,u32 count,xyz float32[N,3],rgb uint8[N,3],source uint8[N,3]",
+  "scenes": {
+    "scene-001_bathroom": {
+      "bounds": {
+        "min": [
+          -0.5681125575751066,
+          -0.453194853246212,
+          -2.1830307735204695
+        ],
+        "max": [
+          1.4546427330821747,
+          1.8485979987978929,
+          0.8796352566480627
+        ]
+      },
+      "clouds": {
+        "Pi3": "data/Pi3.bin",
+        "A0-all": "data/A0-all.bin",
+        "A0-all-ellipsoids": "data/A0-all-ellipsoids.bin",
+        "A1": "data/A1.bin",
+        "A2n": "data/A2n.bin",
+        "A3": "data/A3.bin",
+        "A4": "data/A4.bin",
+        "A4F": "data/A4F.bin",
+        "A5": "data/A5.bin",
+        "ATLAS": "data/ATLAS.bin"
+      }
+    },
+    "scene-002_bedroom": {
+      "bounds": {
+        "min": [
+          -0.9768156491219997,
+          -0.6244218922555447,
+          -1.8829196097254752
+        ],
+        "max": [
+          2.1287763373553754,
+          1.2025704009234905,
+          1.0328160609602928
+        ]
+      },
+      "clouds": {
+        "Pi3": "data/Pi3.bin",
+        "A0-all": "data/A0-all.bin",
+        "A0-all-ellipsoids": "data/A0-all-ellipsoids.bin",
+        "A1": "data/A1.bin",
+        "A2n": "data/A2n.bin",
+        "A3": "data/A3.bin",
+        "A4": "data/A4.bin",
+        "A4F": "data/A4F.bin",
+        "A5": "data/A5.bin",
+        "ATLAS": "data/ATLAS.bin"
+      }
+    },
+    "scene-003_living_room": {
+      "bounds": {
+        "min": [
+          -2.174766633659601,
+          -1.0822661366909743,
+          -1.852906061977148
+        ],
+        "max": [
+          2.0451667042076584,
+          1.4484129994958639,
+          1.5787427758872508
+        ]
+      },
+      "clouds": {
+        "Pi3": "data/Pi3.bin",
+        "A0-all": "data/A0-all.bin",
+        "A0-all-ellipsoids": "data/A0-all-ellipsoids.bin",
+        "A1": "data/A1.bin",
+        "A2n": "data/A2n.bin",
+        "A3": "data/A3.bin",
+        "A4": "data/A4.bin",
+        "A4F": "data/A4F.bin",
+        "A5": "data/A5.bin",
+        "ATLAS": "data/ATLAS.bin"
+      }
+    },
+    "scene-004_bedroom": {
+      "bounds": {
+        "min": [
+          -2.1468311752676965,
+          -1.5201719799041746,
+          -1.266244989991188
+        ],
+        "max": [
+          1.633861105620861,
+          1.1417353215217587,
+          1.759271749615669
+        ]
+      },
+      "clouds": {
+        "Pi3": "data/Pi3.bin",
+        "A0-all": "data/A0-all.bin",
+        "A0-all-ellipsoids": "data/A0-all-ellipsoids.bin",
+        "A1": "data/A1.bin",
+        "A2n": "data/A2n.bin",
+        "A3": "data/A3.bin",
+        "A4": "data/A4.bin",
+        "A4F": "data/A4F.bin",
+        "A5": "data/A5.bin",
+        "ATLAS": "data/ATLAS.bin"
+      }
+    }
+  }
+}

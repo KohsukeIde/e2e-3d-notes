@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>E-RayZer scene point cloud viewer</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #090b10;
+      --panel: #11151d;
+      --panel-2: #171c27;
+      --line: #293141;
+      --text: #eef2f8;
+      --muted: #9ca9bc;
+      --accent: #80aaff;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; background: var(--bg); color: var(--text); font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    body { display: grid; grid-template-rows: auto 1fr; }
+    header { padding: 22px clamp(18px, 4vw, 52px) 18px; border-bottom: 1px solid var(--line); background: linear-gradient(120deg, #121827, #0d1017 65%); }
+    h1 { margin: 0; font-size: clamp(22px, 3vw, 36px); letter-spacing: -.03em; }
+    header p { margin: 8px 0 0; color: var(--muted); max-width: 920px; line-height: 1.55; }
+    main { min-height: 0; display: grid; grid-template-columns: minmax(250px, 320px) 1fr; }
+    aside { padding: 20px; background: var(--panel); border-right: 1px solid var(--line); overflow-y: auto; }
+    label, .label { display: block; margin: 0 0 7px; color: var(--muted); font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+    select, button, input { font: inherit; }
+    select { width: 100%; margin: 0 0 18px; padding: 10px 11px; color: var(--text); background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; }
+    .segmented { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-bottom: 18px; }
+    button { padding: 9px 10px; border-radius: 8px; border: 1px solid var(--line); color: var(--text); background: var(--panel-2); cursor: pointer; }
+    button:hover, button.active { border-color: var(--accent); color: white; }
+    .views { grid-template-columns: repeat(3, 1fr); }
+    .check { display: flex; gap: 9px; align-items: center; margin: 4px 0 19px; color: var(--text); font-size: 14px; }
+    .check input { width: 16px; height: 16px; accent-color: var(--accent); }
+    input[type="range"] { width: 100%; margin-bottom: 18px; accent-color: var(--accent); }
+    .card { margin-top: 8px; padding: 13px 14px; border: 1px solid var(--line); border-radius: 10px; background: #0e1219; }
+    .card strong { display: block; margin-bottom: 7px; }
+    .card p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.55; }
+    .legend { display: flex; gap: 12px; margin-top: 12px; color: var(--muted); font-size: 12px; }
+    .axis::before { content: ""; display: inline-block; width: 8px; height: 8px; margin-right: 5px; border-radius: 50%; background: currentColor; }
+    .x { color: #ff6b6b; } .y { color: #65d98b; } .z { color: #6c9cff; }
+    #stage { position: relative; min-height: 520px; overflow: hidden; }
+    canvas { display: block; width: 100%; height: 100%; }
+    #status { position: absolute; top: 14px; left: 14px; padding: 8px 10px; border: 1px solid #30394a; border-radius: 8px; color: #d8dfeb; background: rgba(10, 13, 19, .82); font-size: 12px; pointer-events: none; backdrop-filter: blur(7px); }
+    #hint { position: absolute; right: 14px; bottom: 14px; color: #a9b4c5; background: rgba(10, 13, 19, .78); padding: 7px 9px; border-radius: 7px; font-size: 12px; pointer-events: none; }
+    #error { display: none; position: absolute; inset: 20px; padding: 18px; color: #ffd5d5; background: #2b1114; border: 1px solid #7d3139; border-radius: 10px; }
+    @media (max-width: 760px) {
+      main { grid-template-columns: 1fr; grid-template-rows: auto minmax(520px, 68vh); }
+      aside { border-right: 0; border-bottom: 1px solid var(--line); }
+    }
+  </style>
+  <script type="importmap">
+    {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}
+  </script>
+</head>
+<body>
+  <header>
+    <h1>E-RayZer scene point cloud viewer</h1>
+    <p>RoomTours 4 scenesに対する各手法の点群を、評価時のSim(3)でPi3座標系へ揃えて表示します。各cloudは表示用の20,000点sampleです。Pi3はpseudo-referenceでありground truthではありません。</p>
+  </header>
+  <main>
+    <aside>
+      <label for="scene">Scene</label>
+      <select id="scene"></select>
+
+      <label for="method">Method</label>
+      <select id="method"></select>
+
+      <span class="label">Point color</span>
+      <div class="segmented" id="colorMode">
+        <button data-mode="rgb" class="active">RGB</button>
+        <button data-mode="source">Source window</button>
+      </div>
+
+      <label class="check"><input id="overlay" type="checkbox"> Pi3を半透明で重ねる</label>
+
+      <label for="pointSize">Point size</label>
+      <input id="pointSize" type="range" min="1" max="6" step="0.25" value="2">
+
+      <span class="label">Canonical view</span>
+      <div class="segmented views">
+        <button id="front">Front</button>
+        <button id="top">Top</button>
+        <button id="iso" class="active">3D</button>
+      </div>
+
+      <div class="card">
+        <strong id="methodName">—</strong>
+        <p id="methodNote">データを読み込んでいます。</p>
+        <div class="legend"><span class="axis x">X</span><span class="axis y">Y</span><span class="axis z">Z</span></div>
+      </div>
+    </aside>
+    <section id="stage">
+      <div id="status">loading…</div>
+      <div id="hint">drag: rotate · wheel: zoom · right-drag: pan</div>
+      <div id="error"></div>
+    </section>
+  </main>
+
+  <script type="module">
+    import * as THREE from "three";
+    import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+
+    const sceneLabels = {
+      "scene-001_bathroom": "Bathroom",
+      "scene-002_bedroom": "Bedroom-1",
+      "scene-003_living_room": "Living room",
+      "scene-004_bedroom": "Bedroom-2"
+    };
+    const methods = {
+      "Pi3": ["Pi3 pseudo-reference", "同じsceneの既存点群。ground truthではありません。"],
+      "A0-all": ["A0-all", "40 viewsを一括入力したOOD control。"],
+      "A0-all-ellipsoids": ["A0-all-ellipsoids", "A0-allのGaussian ellipsoid上をsample。"],
+      "A1": ["A1 raw concat", "local point cloudsをalignmentせず連結。"],
+      "A2n": ["A2n sequential Umeyama", "non-overlap windowとnearest-neighbor対応による逐次Sim(3)。"],
+      "A3": ["A3 same-pixel Sim(3)", "shared frameの同一pixel対応による逐次Sim(3)。"],
+      "A4": ["A4 global graph", "全windowのSim(3)をgraph上で同時最適化。"],
+      "A4F": ["A4F direct XYZ", "A4のtransformでXYZを移し、A5と同じfusionを適用。"],
+      "A5": ["A5 ray re-anchor", "global camera ray上へdepthを再配置してfusion。"],
+      "ATLAS": ["ATLAS chart layout", "global cloudではなくlocal chartsを保持。表示用layoutはA3と同じ逐次transform。"]
+    };
+    const stage = document.querySelector("#stage");
+    const status = document.querySelector("#status");
+    const errorBox = document.querySelector("#error");
+    const sceneSelect = document.querySelector("#scene");
+    const methodSelect = document.querySelector("#method");
+    const overlayToggle = document.querySelector("#overlay");
+    const pointSize = document.querySelector("#pointSize");
+    const methodName = document.querySelector("#methodName");
+    const methodNote = document.querySelector("#methodNote");
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    renderer.setClearColor(0x090b10, 1);
+    stage.prepend(renderer.domElement);
+    const world = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(48, 1, 0.001, 1000);
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.08;
+    const axes = new THREE.AxesHelper(1);
+    world.add(axes);
+
+    let manifest;
+    let currentPoints;
+    let overlayPoints;
+    let currentData;
+    let colorMode = "rgb";
+    let radius = 1;
+    const cache = new Map();
+
+    function parsePCL1(buffer) {
+      const view = new DataView(buffer);
+      const magic = String.fromCharCode(...new Uint8Array(buffer, 0, 4));
+      if (magic !== "PCL1") throw new Error("Unknown point-cloud format");
+      const n = view.getUint32(4, true);
+      const xyzOffset = 8;
+      const rgbOffset = xyzOffset + n * 12;
+      const sourceOffset = rgbOffset + n * 3;
+      return {
+        count: n,
+        xyz: new Float32Array(buffer, xyzOffset, n * 3),
+        rgb: new Uint8Array(buffer, rgbOffset, n * 3),
+        source: new Uint8Array(buffer, sourceOffset, n * 3)
+      };
+    }
+
+    async function loadCloud(sceneId, methodId) {
+      const key = `${sceneId}/${methodId}`;
+      if (!cache.has(key)) {
+        const relative = manifest.scenes[sceneId].clouds[methodId];
+        cache.set(key, fetch(`${sceneId}/${relative}`).then(r => {
+          if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
+          return r.arrayBuffer();
+        }).then(parsePCL1));
+      }
+      return cache.get(key);
+    }
+
+    function geometryFor(data, mode) {
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute("position", new THREE.BufferAttribute(data.xyz, 3));
+      const colors = mode === "source" ? data.source : data.rgb;
+      geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3, true));
+      geometry.computeBoundingSphere();
+      return geometry;
+    }
+
+    function removePoints(points) {
+      if (!points) return;
+      world.remove(points);
+      points.geometry.dispose();
+      points.material.dispose();
+    }
+
+    async function updateCloud({ resetView = false } = {}) {
+      const sceneId = sceneSelect.value;
+      const methodId = methodSelect.value;
+      status.textContent = "loading…";
+      try {
+        const data = await loadCloud(sceneId, methodId);
+        currentData = data;
+        removePoints(currentPoints);
+        currentPoints = new THREE.Points(
+          geometryFor(data, colorMode),
+          new THREE.PointsMaterial({ size: Number(pointSize.value), sizeAttenuation: false, vertexColors: true })
+        );
+        world.add(currentPoints);
+        await updateOverlay();
+        const b = manifest.scenes[sceneId].bounds;
+        const min = new THREE.Vector3(...b.min);
+        const max = new THREE.Vector3(...b.max);
+        const center = min.clone().add(max).multiplyScalar(0.5);
+        radius = Math.max(max.x-min.x, max.y-min.y, max.z-min.z) * 0.58;
+        axes.position.copy(min);
+        axes.scale.setScalar(radius * 0.42);
+        camera.near = Math.max(radius / 1000, 0.0001);
+        camera.far = radius * 100;
+        camera.updateProjectionMatrix();
+        if (resetView) setView("iso", center);
+        methodName.textContent = methods[methodId][0];
+        methodNote.textContent = methods[methodId][1];
+        status.textContent = `${sceneLabels[sceneId]} · ${methods[methodId][0]} · ${data.count.toLocaleString()} points · Pi3 frame`;
+      } catch (error) {
+        errorBox.style.display = "block";
+        errorBox.textContent = `点群を読み込めませんでした: ${error.message}`;
+        status.textContent = "error";
+      }
+    }
+
+    async function updateOverlay() {
+      removePoints(overlayPoints);
+      overlayPoints = undefined;
+      if (!overlayToggle.checked || methodSelect.value === "Pi3") return;
+      const data = await loadCloud(sceneSelect.value, "Pi3");
+      overlayPoints = new THREE.Points(
+        geometryFor(data, "rgb"),
+        new THREE.PointsMaterial({ size: Math.max(1, Number(pointSize.value) * .65), sizeAttenuation: false, vertexColors: true, transparent: true, opacity: .24, depthWrite: false })
+      );
+      world.add(overlayPoints);
+    }
+
+    function sceneCenter() {
+      const b = manifest.scenes[sceneSelect.value].bounds;
+      return new THREE.Vector3(...b.min).add(new THREE.Vector3(...b.max)).multiplyScalar(.5);
+    }
+
+    function setView(kind, center = sceneCenter()) {
+      controls.target.copy(center);
+      camera.up.set(0, 1, 0);
+      if (kind === "front") camera.position.copy(center).add(new THREE.Vector3(0, 0, radius * 2.7));
+      if (kind === "top") {
+        camera.up.set(0, 0, 1);
+        camera.position.copy(center).add(new THREE.Vector3(0, radius * 2.7, 0));
+      }
+      if (kind === "iso") camera.position.copy(center).add(new THREE.Vector3(radius * 1.55, radius * 1.15, radius * 1.75));
+      controls.update();
+      document.querySelectorAll(".views button").forEach(b => b.classList.toggle("active", b.id === kind));
+    }
+
+    function resize() {
+      const { clientWidth: width, clientHeight: height } = stage;
+      renderer.setSize(width, height, false);
+      camera.aspect = width / Math.max(height, 1);
+      camera.updateProjectionMatrix();
+    }
+
+    new ResizeObserver(resize).observe(stage);
+    function animate() { controls.update(); renderer.render(world, camera); requestAnimationFrame(animate); }
+    animate();
+
+    try {
+      manifest = await fetch("manifest.json").then(r => r.json());
+      Object.keys(manifest.scenes).forEach(id => sceneSelect.add(new Option(sceneLabels[id] || id, id)));
+      Object.keys(methods).forEach(id => methodSelect.add(new Option(methods[id][0], id)));
+      sceneSelect.value = Object.keys(manifest.scenes)[0];
+      methodSelect.value = "A3";
+      await updateCloud({ resetView: true });
+    } catch (error) {
+      errorBox.style.display = "block";
+      errorBox.textContent = `Viewerを初期化できませんでした: ${error.message}`;
+    }
+
+    sceneSelect.addEventListener("change", () => updateCloud({ resetView: true }));
+    methodSelect.addEventListener("change", () => updateCloud());
+    overlayToggle.addEventListener("change", updateOverlay);
+    pointSize.addEventListener("input", () => {
+      if (currentPoints) currentPoints.material.size = Number(pointSize.value);
+      if (overlayPoints) overlayPoints.material.size = Math.max(1, Number(pointSize.value) * .65);
+    });
+    document.querySelectorAll("#colorMode button").forEach(button => button.addEventListener("click", () => {
+      colorMode = button.dataset.mode;
+      document.querySelectorAll("#colorMode button").forEach(b => b.classList.toggle("active", b === button));
+      updateCloud();
+    }));
+    ["front", "top", "iso"].forEach(id => document.querySelector(`#${id}`).addEventListener("click", () => setView(id)));
+  </script>
+</body>
+</html>

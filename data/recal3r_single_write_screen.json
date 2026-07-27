@@ -1,0 +1,359 @@
+{
+  "schema_version": 1,
+  "title": "ReCal3R single scene-state write sensitivity screen",
+  "status": "complete",
+  "settings": {
+    "model": "Official ReCal3R code with the official final CUT3R checkpoint at 512-pixel input resolution",
+    "stream_processing": "ReCal3R processes an ordered image stream. For each image, it first predicts the current geometry and then selectively blends newly inferred information into a latent scene representation carried to later images.",
+    "dataset": "TUM RGB-D Freiburg3 walking recordings: static, xyz, rpy, and halfsphere",
+    "sampling": "Thirty-two images per recording, sampled deterministically and uniformly in natural temporal order",
+    "interventions": [
+      "11枚目→12枚目",
+      "21枚目→22枚目"
+    ],
+    "comparison": "The same prefix, write-target image, current output, pose memory, and known auxiliary state are shared. Only the post-output scene-state write for the write-target image is normal or disabled.",
+    "measurement": "The next uniformly sampled image is evaluated before that image writes to memory.",
+    "alignment": {
+      "fit_scope": "The common early prefix, sampled images 2–9",
+      "reuse": "The fitted alignment is reused for both conditions.",
+      "depth": "One affine alignment",
+      "aligned_3d_points": "One similarity alignment"
+    },
+    "valid_pixels": "Ground-truth-defined valid pixels shared by both conditions",
+    "training_or_adaptation": "No training, fine-tuning, optimization, or post-processing",
+    "independent_unit": "recording",
+    "recording_count": 4,
+    "event_count": 8
+  },
+  "event_table_scope": {
+    "included_endpoints": [
+      "depth AbsRel",
+      "aligned 3D point error"
+    ],
+    "camera": "Camera-error values are intentionally omitted because camera was not part of the continuation endpoint.",
+    "signed_effect_definition": "(error when the write is disabled - normal-write error) / normal-write error × 100",
+    "sign_interpretation": "Positive means the normal write reduced next-image error; negative means disabling the write reduced next-image error."
+  },
+  "events": [
+    {
+      "recording": "walking static",
+      "intervention": "11枚目→12枚目",
+      "time_gap_seconds": 0.8076531887054443,
+      "normal_write_errors": {
+        "depth_absrel": 0.10782977826367438,
+        "aligned_3d_point_error": 0.10938714743889391
+      },
+      "disabled_write_errors": {
+        "depth_absrel": 0.10745443966052456,
+        "aligned_3d_point_error": 0.10907474372062483
+      },
+      "signed_effect_percent": {
+        "depth": -0.3480843688948348,
+        "aligned_3d_point": -0.2855945379173559
+      },
+      "invalid_output_rate": {
+        "normal_write": 0.0,
+        "disabled_write": 0.0
+      }
+    },
+    {
+      "recording": "walking static",
+      "intervention": "21枚目→22枚目",
+      "time_gap_seconds": 0.7719299793243408,
+      "normal_write_errors": {
+        "depth_absrel": 0.09410571717523057,
+        "aligned_3d_point_error": 0.10534788070382332
+      },
+      "disabled_write_errors": {
+        "depth_absrel": 0.09457010479829239,
+        "aligned_3d_point_error": 0.10586423568646948
+      },
+      "signed_effect_percent": {
+        "depth": 0.4934743998572404,
+        "aligned_3d_point": 0.4901427339557442
+      },
+      "invalid_output_rate": {
+        "normal_write": 0.0,
+        "disabled_write": 0.0
+      }
+    },
+    {
+      "recording": "walking xyz",
+      "intervention": "11枚目→12枚目",
+      "time_gap_seconds": 0.9361889362335205,
+      "normal_write_errors": {
+        "depth_absrel": 0.10224657109904271,
+        "aligned_3d_point_error": 0.10899619849756041
+      },
+      "disabled_write_errors": {
+        "depth_absrel": 0.10497157373160175,
+        "aligned_3d_point_error": 0.11138974462943295
+      },
+      "signed_effect_percent": {
+        "depth": 2.665128623158836,
+        "aligned_3d_point": 2.195990470187004
+      },
+      "invalid_output_rate": {
+        "normal_write": 0.0,
+        "disabled_write": 0.0
+      }
+    },
+    {
+      "recording": "walking xyz",
+      "intervention": "21枚目→22枚目",
+      "time_gap_seconds": 0.9041590690612793,
+      "normal_write_errors": {
+        "depth_absrel": 0.24057034278112346,
+        "aligned_3d_point_error": 0.30282619371770275
+      },
+      "disabled_write_errors": {
+        "depth_absrel": 0.2404355985281942,
+        "aligned_3d_point_error": 0.3027642054330919
+      },
+      "signed_effect_percent": {
+        "depth": -0.056010334179823054,
+        "aligned_3d_point": -0.02046992165698643
+      },
+      "invalid_output_rate": {
+        "normal_write": 0.0,
+        "disabled_write": 0.0
+      }
+    },
+    {
+      "recording": "walking rpy",
+      "intervention": "11枚目→12枚目",
+      "time_gap_seconds": 0.9720799922943115,
+      "normal_write_errors": {
+        "depth_absrel": 0.2687514434148179,
+        "aligned_3d_point_error": 0.2815785311244487
+      },
+      "disabled_write_errors": {
+        "depth_absrel": 0.2693446004950504,
+        "aligned_3d_point_error": 0.2821355418087495
+      },
+      "signed_effect_percent": {
+        "depth": 0.2207084258583721,
+        "aligned_3d_point": 0.19781717095989335
+      },
+      "invalid_output_rate": {
+        "normal_write": 0.0,
+        "disabled_write": 0.0
+      }
+    },
+    {
+      "recording": "walking rpy",
+      "intervention": "21枚目→22枚目",
+      "time_gap_seconds": 0.9399030208587646,
+      "normal_write_errors": {
+        "depth_absrel": 0.20288793288237084,
+        "aligned_3d_point_error": 0.26001964431164065
+      },
+      "disabled_write_errors": {
+        "depth_absrel": 0.20392681120212253,
+        "aligned_3d_point_error": 0.26111275012516205
+      },
+      "signed_effect_percent": {
+        "depth": 0.5120453961912093,
+        "aligned_3d_point": 0.4203935500393512
+      },
+      "invalid_output_rate": {
+        "normal_write": 0.0,
+        "disabled_write": 0.0
+      }
+    },
+    {
+      "recording": "walking halfsphere",
+      "intervention": "11枚目→12枚目",
+      "time_gap_seconds": 1.2140719890594482,
+      "normal_write_errors": {
+        "depth_absrel": 0.24505256928235292,
+        "aligned_3d_point_error": 0.29624692205240855
+      },
+      "disabled_write_errors": {
+        "depth_absrel": 0.24652594202191083,
+        "aligned_3d_point_error": 0.2975945324208648
+      },
+      "signed_effect_percent": {
+        "depth": 0.6012476195914825,
+        "aligned_3d_point": 0.45489430206395903
+      },
+      "invalid_output_rate": {
+        "normal_write": 0.0,
+        "disabled_write": 0.0
+      }
+    },
+    {
+      "recording": "walking halfsphere",
+      "intervention": "21枚目→22枚目",
+      "time_gap_seconds": 1.1825480461120605,
+      "normal_write_errors": {
+        "depth_absrel": 0.2115038968172552,
+        "aligned_3d_point_error": 0.26362481678069827
+      },
+      "disabled_write_errors": {
+        "depth_absrel": 0.21177392107108264,
+        "aligned_3d_point_error": 0.2639872076191994
+      },
+      "signed_effect_percent": {
+        "depth": 0.12766868974558268,
+        "aligned_3d_point": 0.13746461464688656
+      },
+      "invalid_output_rate": {
+        "normal_write": 0.0,
+        "disabled_write": 0.0
+      }
+    }
+  ],
+  "recording_aggregates": [
+    {
+      "recording": "walking static",
+      "event_count": 2,
+      "mean_raw_errors": {
+        "normal_write_depth_absrel": 0.10096774771945247,
+        "disabled_write_depth_absrel": 0.10101227222940848,
+        "normal_write_aligned_3d_point_error": 0.10736751407135861,
+        "disabled_write_aligned_3d_point_error": 0.10746948970354715
+      },
+      "absolute_relative_change_percent": {
+        "depth": 0.04409775493826727,
+        "aligned_3d_point": 0.09497810680497522
+      },
+      "recording_passed": false
+    },
+    {
+      "recording": "walking xyz",
+      "event_count": 2,
+      "mean_raw_errors": {
+        "normal_write_depth_absrel": 0.17140845694008308,
+        "disabled_write_depth_absrel": 0.17270358612989797,
+        "normal_write_aligned_3d_point_error": 0.2059111961076316,
+        "disabled_write_aligned_3d_point_error": 0.20707697503126243
+      },
+      "absolute_relative_change_percent": {
+        "depth": 0.7555806830859068,
+        "aligned_3d_point": 0.5661561613296063
+      },
+      "recording_passed": false
+    },
+    {
+      "recording": "walking rpy",
+      "event_count": 2,
+      "mean_raw_errors": {
+        "normal_write_depth_absrel": 0.23581968814859436,
+        "disabled_write_depth_absrel": 0.23663570584858645,
+        "normal_write_aligned_3d_point_error": 0.2707990877180447,
+        "disabled_write_aligned_3d_point_error": 0.2716241459669558
+      },
+      "absolute_relative_change_percent": {
+        "depth": 0.34603459380283225,
+        "aligned_3d_point": 0.3046754166949603
+      },
+      "recording_passed": false
+    },
+    {
+      "recording": "walking halfsphere",
+      "event_count": 2,
+      "mean_raw_errors": {
+        "normal_write_depth_absrel": 0.22827823304980405,
+        "disabled_write_depth_absrel": 0.22914993154649674,
+        "normal_write_aligned_3d_point_error": 0.2799358694165534,
+        "disabled_write_aligned_3d_point_error": 0.2807908700200321
+      },
+      "absolute_relative_change_percent": {
+        "depth": 0.3818579130593281,
+        "aligned_3d_point": 0.3054273127844286
+      },
+      "recording_passed": false
+    }
+  ],
+  "time_gaps": {
+    "unit": "seconds",
+    "minimum": 0.7719299793243408,
+    "maximum": 1.2140719890594482,
+    "per_event_values_are_in": "events"
+  },
+  "frozen_continuation_rule": {
+    "aggregation": "Within each recording and condition, average the two raw errors first, then take the absolute relative change between the condition means.",
+    "endpoint_threshold_percent": "max(1%, 10 × sham floor)",
+    "recording_pass": "A recording passes when either depth AbsRel or aligned 3D point error exceeds its endpoint threshold.",
+    "experiment_pass": "Continue to the full allocation experiment only when at least three of four recordings pass.",
+    "sham_floor_percent": {
+      "depth": 0.0,
+      "aligned_3d_point": 0.0
+    },
+    "effective_threshold_percent": {
+      "depth": 1.0,
+      "aligned_3d_point": 1.0
+    },
+    "passed_recordings": 0,
+    "required_recordings": 3,
+    "status": "FAIL",
+    "interpretation": "The 1% value is a pilot continuation threshold. It is not a significance test, a practical-equivalence margin, or proof of no effect."
+  },
+  "controls": {
+    "control_reports": 16,
+    "all_control_reports_valid": true,
+    "all_checks_passed": true,
+    "invalid_episodes": 0,
+    "invalid_outputs": 0,
+    "sham_floors_were_zero": true,
+    "checks": [
+      "Pose memory and known auxiliary state matched across conditions.",
+      "All evaluated outputs were finite.",
+      "The instrumented path matched the official recurrent path.",
+      "Identical-condition repeats stayed at the numerical floor.",
+      "Restoring a saved state reproduced uninterrupted output.",
+      "The ground-truth-defined valid mask matched across conditions.",
+      "The write-target image's current output matched across conditions.",
+      "A deliberately mistimed saved state produced a detectable difference."
+    ]
+  },
+  "rerun_agreement": {
+    "screen_scalars": "Every scalar was reproduced exactly.",
+    "qualitative_arrays": "Every array element was reproduced exactly.",
+    "qualitative_metadata": "All metadata matched.",
+    "scope": "This is computational reproducibility from a same-pipeline rerun, not external replication."
+  },
+  "qualitative_selection": {
+    "recording": "walking xyz",
+    "intervention": "11枚目→12枚目",
+    "selection_rule": "Selected post hoc as the event with the largest positive depth effect.",
+    "independent_validation": false
+  },
+  "unrun_conditions": [
+    "Scene-state write crossed with a pose-memory intervention",
+    "Equal-write-magnitude uniform allocation",
+    "Full scene-state write",
+    "Eight-image later-output aggregation"
+  ],
+  "claim_boundaries": {
+    "strongest_supported_claim": "In these four 32-image sparse substreams and eight interventions, the recording-average first-next-sampled-image effect of one scene-state write on depth and aligned 3D point error stayed below the predeclared 1% continuation threshold, while leverage was not uniform over time.",
+    "does_not_support": [
+      "ReCal3R memory is unused.",
+      "Long-run accumulation is negligible.",
+      "Scene-state writes are unnecessary.",
+      "Token allocation is inferior.",
+      "Camera changed by less than 1%.",
+      "The ReCal3R paper is contradicted.",
+      "Any unrun condition had a null result."
+    ]
+  },
+  "limitations": [
+    "Only four related recordings and eight events were evaluated.",
+    "Averaging over all ground-truth-valid pixels may dilute local effects.",
+    "Only one write and the next sparse sample were evaluated.",
+    "Natural visibility, overlap, and motion were not controlled across events.",
+    "Only one checkpoint and the same compute path were used.",
+    "Camera was outside the continuation gate.",
+    "The qualitative case was selected post hoc.",
+    "The full allocation and pose-memory experiments were not run.",
+    "A known-state allowlist does not prove the absence of every possible mutable state."
+  ],
+  "next_question": "Can high-leverage observations be constructed or predicted by controlled 3D evidence novelty, occlusion, and future revisit demand?",
+  "primary_sources": {
+    "paper": "https://arxiv.org/abs/2607.05356",
+    "recal3r_code": "https://github.com/Powertony102/ReCal3R",
+    "cut3r_code": "https://github.com/CUT3R/CUT3R",
+    "tum_rgbd_dataset": "https://cvg.cit.tum.de/data/datasets/rgbd-dataset"
+  }
+}

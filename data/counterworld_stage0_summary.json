@@ -1,0 +1,102 @@
+{
+  "status": "complete_with_invalid_measurement",
+  "research_question": "同じ入力画像に一致しながら距離の問いへ反対に答える二つの3D候補から，その間の連続な候補を解析的に作れるか",
+  "world_family": {
+    "target": "位置，半径，色を持つ一つの球",
+    "fixed_context": "位置と半径が固定された別の球，背景，照明，camera",
+    "initial_view_count": 4,
+    "initial_camera_motion": "光学中心を共有する純回転",
+    "informative_view": "query距離の0.25倍だけ横へ移動したcamera",
+    "image_resolution": [128, 128],
+    "scientific_rgb_dtype": "float64"
+  },
+  "query_and_endpoints": {
+    "near_depth_factor": 0.75,
+    "far_depth_factor": 1.4,
+    "required_relative_answer_margin": 0.2,
+    "radial_transform": "球の中心距離と半径を同じ正の倍率で変える"
+  },
+  "analytic_result": {
+    "two_endpoints_define_full_segment": true,
+    "one_world_and_query_define_both_endpoints": true,
+    "uses_input_images_after_worlds_are_given": false,
+    "scope": "同じ正のray上で中心距離と半径だけが比例する球のfamily",
+    "claim_decision": "このfamilyでは，連続なworld segmentは二端点より機能的に強い出力ではない"
+  },
+  "run_1": {
+    "calibration_scene_count": 64,
+    "test_scene_count": 256,
+    "renderer_comparison_count": 768,
+    "passed_renderer_comparison_count": 764,
+    "failed_renderer_comparison_count": 4,
+    "failed_calibration_scene_count": 2,
+    "measurement_gate": false,
+    "scientific_evidence": false
+  },
+  "run_2": {
+    "calibration_scene_count": 64,
+    "test_scene_count": 256,
+    "generator_infeasible_calibration": 0,
+    "generator_infeasible_test": 0,
+    "journal_start_event_count": 320,
+    "journal_completion_event_count": 320,
+    "measurement": {
+      "renderer_comparison_count": 768,
+      "passed_renderer_comparison_count": 752,
+      "failed_renderer_comparison_count": 16,
+      "failed_calibration_scene_count": 8,
+      "all_comparisons_were_required": true,
+      "route_depth_max_abs_threshold": 1e-11,
+      "route_rgb_max_abs_threshold": 1e-12,
+      "reference_stability_abs_threshold": 6.223015277861142e-61,
+      "gate_pass_counts": {
+        "object_id_and_finite_depth_pattern": 768,
+        "full_image_mutual_depth": 768,
+        "spot_coverage": 768,
+        "high_precision_reference_stability": 768,
+        "vector_route_against_reference": 758,
+        "scalar_route_against_reference": 754,
+        "complete_comparison": 752
+      },
+      "route_failure_counts_with_overlap": {
+        "vector_rgb": 10,
+        "scalar_rgb": 14,
+        "vector_depth": 0,
+        "scalar_depth": 0
+      },
+      "failure_localization": {
+        "failed_comparisons": 16,
+        "failed_scenes": 8,
+        "same_camera_failed_for_near_and_far_endpoints": true,
+        "maximum_error_object": "位置を固定した球",
+        "maximum_error_region": "球の輪郭に最も近い検査点"
+      },
+      "maximum_absolute_errors": {
+        "vector_depth": 1.3182153715726355e-12,
+        "vector_rgb": 2.057335781334804e-12,
+        "scalar_depth": 2.308650961251865e-12,
+        "scalar_rgb": 3.28412458788233e-12,
+        "vector_scalar_depth": 1.5001333508735115e-12,
+        "vector_scalar_rgb": 2.1347923429004823e-12,
+        "reference_256_512_depth": 1.2200087829591984e-73,
+        "reference_256_512_rgb": 1.7246408416496438e-73
+      }
+    },
+    "test_diagnostics_not_interpreted": {
+      "valid_scene_count": 256,
+      "endpoint_to_segment_success_count": 256,
+      "one_world_to_endpoints_success_count": 256,
+      "translated_evidence_selection_success_count": 256,
+      "full_interval_certificate_success_count": 256,
+      "sampled_numeric_regression_success_count": 256
+    },
+    "measurement_gate": false,
+    "scientific_evidence": false,
+    "decision": "calibrationが不合格であるため，test診断値を経験的な研究結果として解釈しない"
+  },
+  "qualitative_packet": {
+    "selection": "固定したtest cohortで最初に保存された有効scene",
+    "purpose": "幾何学的な問題設定の図示だけに用い，数値的な成功証拠には用いない",
+    "array_file": "counterworld_stage0_qualitative.npz"
+  }
+}
